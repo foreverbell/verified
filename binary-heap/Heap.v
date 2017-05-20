@@ -70,16 +70,16 @@ Definition shrink_heap (h : heap) : heap :=
   end.
 
 Definition Heap (h : heap) : Prop :=
-  forall (i : nat),
-    2 <= i /\ i <= heap_n h ->
-    getv (heap_array h) i <= getv (heap_array h) (i/2).
+     (forall (i : nat), 2 <= i ->
+       getv (heap_array h) i <= getv (heap_array h) (i/2))
+  /\ (forall (i : nat), i > heap_n h -> getv (heap_array h) i = 0).
 
-Fixpoint heap_upify (h : heap) (k dep : nat) : heap :=
-  match dep with
+Fixpoint heap_upify (h : heap) (k height : nat) : heap :=
+  match height with
   | 0 => h
-  | S dep' =>
+  | S height' =>
       if getv (heap_array h) (k/2) <? getv (heap_array h) (k)
-        then heap_upify (swap (heap_array h) k (k/2), (heap_n h)) (k/2) dep'
+        then heap_upify (swap (heap_array h) k (k/2), (heap_n h)) (k/2) height'
         else h
   end.
 
@@ -172,54 +172,61 @@ Hint Resolve Nat.le_trans.
 Hint Resolve Nat.lt_le_incl.
 
 Lemma heap_upify_correct :
-  forall (h : heap) (k dep : nat),
-    log2 k = dep ->
-    k > 0 ->
+  forall (h : heap) (k height : nat),
+    log2 k = height ->
+    k > 0 /\ k <= heap_n h ->
     (forall (i : nat),
-       2 <= i <= heap_n h /\ ~(k = i) -> getv (heap_array h) i <= getv (heap_array h) (i/2)) ->
+       2 <= i /\ ~(k = i) -> getv (heap_array h) i <= getv (heap_array h) (i/2)) ->
     (forall (i : nat),
-       4 <= i <= heap_n h /\ i/2 = k -> getv (heap_array h) i <= getv (heap_array h) (k/2)) ->
-    Heap (heap_upify h k dep).
+       4 <= i /\ i/2 = k -> getv (heap_array h) i <= getv (heap_array h) (k/2)) ->
+    (forall (i : nat),
+       i > heap_n h -> getv (heap_array h) i = 0) ->
+    Heap (heap_upify h k height).
 Proof.
-  intros h k dep.
+  intros h k height.
   generalize dependent h.
   generalize dependent k.
-  induction dep.
+  induction height.
   - intros.
     rewrite Nat.log2_null in H.
     assert (k = 1). { omega. } clear H H0. subst. simpl.
-    unfold Heap. intros. apply H1. omega.
+    unfold Heap. split. intros. apply H1. omega. apply H3.
   - intros. unfold heap_upify. fold heap_upify.
-    clear H0. assert (k > 1).
-    { apply Nat.log2_lt_cancel. rewrite Nat.log2_1. rewrite H. omega. }
-    destruct (getv (heap_array h) (k/2) <? getv (heap_array h) k) eqn:H3.
-    + rewrite Nat.ltb_lt in H3.
-      apply IHdep; clear IHdep.
-      * apply log2_div2; auto.
-      * assert (2/2 <= k/2). { apply div2_ge_k. omega. } auto.
-      * intros. destruct H4.
-        unfold heap_array. unfold heap_array in H3.
-        { destruct (k =? i) eqn:H6.
-          - apply beq_nat_true in H6. subst.
+    assert (k > 1 /\ k <= heap_n h).
+    { split. apply Nat.log2_lt_cancel. rewrite Nat.log2_1. rewrite H. omega.
+      destruct H0. auto. }
+    clear H0. rename H4 into H0.
+    destruct (getv (heap_array h) (k/2) <? getv (heap_array h) k) eqn:H4.
+    + rewrite Nat.ltb_lt in H4.
+      apply IHheight; clear IHheight.
+      * apply log2_div2; auto. destruct H0. auto.
+      * assert (2/2 <= k/2). { apply div2_ge_k. omega. }
+        split; auto.
+        assert (k/2 <= k). { auto. }
+        destruct H0. simpl. eauto.
+      * intros. destruct H5.
+        unfold heap_array. unfold heap_array in H4.
+        { destruct (k =? i) eqn:H7.
+          - apply beq_nat_true in H7. subst.
             rewrite swap_get1. rewrite swap_get2. auto.
-          - apply beq_nat_false in H6.
-            destruct (k/2 =? i/2) eqn:H7.
-            + apply beq_nat_true in H7. rewrite <- H7.
+          - apply beq_nat_false in H7.
+            destruct (k/2 =? i/2) eqn:H8.
+            + apply beq_nat_true in H8. rewrite <- H8.
               rewrite swap_get2. rewrite swap_get3; try omega.
-              apply Nat.lt_le_incl in H3.
-              eapply Nat.le_trans; try apply H3.
-              rewrite H7. auto.
-            + apply beq_nat_false in H7.
+              apply Nat.lt_le_incl in H4.
+              eapply Nat.le_trans; try apply H4.
+              rewrite H8. auto.
+            + apply beq_nat_false in H8.
               unfold heap_array. rewrite swap_get3; try omega.
-              destruct (k =? i/2) eqn:H8.
-              * apply beq_nat_true in H8. rewrite <- H8.
+              destruct (k =? i/2) eqn:H9.
+              * apply beq_nat_true in H9. rewrite <- H9.
                 rewrite swap_get1.
-                apply H2. split; auto. simpl in H4. destruct H4.
+                apply H2. split; auto.
                 assert (2*(i/2) <= i). { auto. } omega.
-              * apply beq_nat_false in H8.
+              * apply beq_nat_false in H9.
                 rewrite swap_get3; eauto.
         }
-      * intros. destruct H4. destruct H4. simpl in H6.
+      * intros. destruct H5.
         unfold heap_array.
         { destruct (k =? i) eqn:H7.
           - apply beq_nat_true in H7. subst.
@@ -233,31 +240,33 @@ Proof.
           - apply beq_nat_false in H7.
             assert (2 <= i/2). { rewrite div_4_2. apply Nat.div_le_mono; auto. rewrite <- div_4_2. auto. }
             assert (i/2 < i). { apply div2_lt_n. omega. }
-            assert (i <> k/2). { intros contra. subst. apply div2_eq_n in H5. omega. }
+            assert (i <> k/2). { intros contra. subst. apply div2_eq_n in H6. omega. }
             assert (2*(k/2) <= k). { apply Nat.mul_div_le. omega. }
-            assert (4 <= k). { rewrite <- H5 in H11. omega. }
-            assert (2 <= k/2). { rewrite <- H5 in H11. omega. }
+            assert (4 <= k). { rewrite <- H6 in H11. omega. }
+            assert (2 <= k/2). { rewrite <- H6 in H11. omega. }
             assert (k/2 < k). { apply div2_lt_n. omega. }
             assert (2 <= k/2). { rewrite div_4_2. apply Nat.div_le_mono; auto. rewrite <- div_4_2. auto. }
             assert (k/2/2 < k/2). { apply div2_lt_n. omega. }
             rewrite swap_get3. rewrite swap_get3.
             eapply Nat.le_trans. apply H1. omega.
-            rewrite H5. apply H1. split. rewrite <- H5.
+            rewrite H6. apply H1. split. rewrite <- H6.
             omega. omega. omega. omega. omega. omega.
         }
-    + rewrite Nat.ltb_ge in H3.
-      unfold Heap.
-      intros.
-      destruct (k =? i) eqn:H5.
-      * apply beq_nat_true in H5. subst.
-        apply H3.
-      * apply beq_nat_false in H5.
-        apply H1. auto.
+      * intros. destruct H0. simpl in H5. unfold heap_array.
+        rewrite swap_get3. apply H3. auto. omega.
+        assert (k/2 <= k). { auto. } omega.
+    + rewrite Nat.ltb_ge in H4.
+      unfold Heap. split.
+      * intros.
+        destruct (k =? i) eqn:H6.
+        { - apply beq_nat_true in H6. subst. auto. }
+        { - apply beq_nat_false in H6. auto. }
+      * auto.
 Qed.
 
 Lemma extend_heap_unaffected :
   forall (i v : nat) (h : heap),
-    1 <= i <= heap_n h ->
+    i <> S (heap_n h) ->
     getv (heap_array (extend_heap h v)) i = getv (heap_array h) i.
 Proof.
   intros.
@@ -274,27 +283,34 @@ Theorem heap_push_correct :
 Proof.
   intros.
   unfold heap_push.
-  apply heap_upify_correct; auto; try omega.
-  - intros.
-    rewrite extend_heap_n in H0.
-    destruct H0.
-    unfold Heap in H.
-    assert (2 <= i <= heap_n h). { omega. }
-    clear H0 H1.
-    assert (getv (heap_array (extend_heap h v)) (i / 2) = getv (heap_array h) (i / 2)).
-    { apply extend_heap_unaffected.
-      destruct H2. split.
-      - rewrite div_2_2. auto.
-      - assert (i/2 < i). { apply div2_lt_n. omega. } eauto.
-    }
-    rewrite H0.
+  apply heap_upify_correct; auto.
+  - split. omega. rewrite extend_heap_n. omega.
+  - intros. destruct H0. unfold Heap in H.
     assert (getv (heap_array (extend_heap h v)) i = getv (heap_array h) i).
-    { apply extend_heap_unaffected.
-      destruct H2. split. omega. apply H2.
-    }
-    rewrite H1.
-    apply H. apply H2.
-  - intros. destruct H0.
-    rewrite extend_heap_n in H0. try omega; eauto.
-    assert (i/2 < i). { apply div2_lt_n. omega. } omega.
+    { apply extend_heap_unaffected. auto. }
+    rewrite H2.
+    destruct H.
+    destruct (i / 2 =? S (heap_n h)) eqn:H4.
+    + apply beq_nat_true in H4.
+      assert (i/2 <= i). { auto. } rewrite H4 in H5.
+      assert (getv (heap_array h) i = 0). { apply H3. auto. }
+      rewrite H6. omega.
+    + apply beq_nat_false in H4.
+      assert (getv (heap_array (extend_heap h v)) (i/2) = getv (heap_array h) (i/2)).
+      { apply extend_heap_unaffected.
+        destruct H2. apply H4. }
+    rewrite H5. auto.
+  - intros. destruct H0. unfold Heap in H.
+    assert (i/2 < i). { apply div2_lt_n. omega. } rewrite H1 in H2.
+    destruct H.
+    assert (getv (heap_array (extend_heap h v)) i = getv (heap_array h) i).
+    { apply extend_heap_unaffected. omega. }
+    assert (getv (heap_array h) i = 0).
+    { apply H3. auto. }
+    rewrite H4, H5. omega.
+  - intros. unfold Heap in H. destruct H.
+    rewrite extend_heap_n in H0.
+    assert (getv (heap_array (extend_heap h v)) i = getv (heap_array h) i).
+    { apply extend_heap_unaffected. omega. }
+    rewrite H2. auto.
 Qed.

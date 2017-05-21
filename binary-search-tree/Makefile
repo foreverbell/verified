@@ -1,0 +1,2 @@
+make:
+	coqc BST.v

@@ -62,6 +62,13 @@ Fixpoint delete_leftmost (t : tree) : tree :=
   | Node v l r => Node v (delete_leftmost l) r
   end.
 
+(* Deletion in BST is a bit subtle.
+   If the node does not exist in BST, we are fine. Now suppose
+   the node does not have left child or right child, we can
+   replace the node with right subtree or left subtree. Otherwise,
+   we find the leftmost node of right child, delete it, and set it
+   as the root of subtree.
+*)
 Fixpoint delete (t : tree) (n : nat) : tree :=
   match t with
   | Leaf => Leaf
@@ -102,7 +109,14 @@ Ltac bool_to_prop :=
 
 Ltac propositional := intuition idtac.
 
-(* Proofs. *)
+(* Proofs.
+   Our main results are:
+     1) The value is present in BST after insertion.
+     2) The property of BST keeps after insertion.
+     3) The property of BST keeps after deletion.
+     4) The value is not present in BST after deletion.
+*)
+
 Lemma tree_cmp_n_insert_preserve :
   forall (op : nat -> nat -> Prop) (t : tree) (n0 n : nat),
     tree_cmp_n op t n -> op n0 n -> tree_cmp_n op (insert t n0) n.
@@ -251,6 +265,55 @@ Proof.
       propositional.
       * eapply IHt1; eauto.
       * eapply tree_gt_trans; eauto.
+Qed.
+
+Lemma tree_lt_implies_not_member :
+  forall (t : tree) (n : nat),
+    tree_lt_n t n -> member t n = true -> False.
+Proof.
+  intros t.
+  induction t; intros; unfold_tree.
+  - inversion H0.
+  - simpl in *. propositional. assert (n0 > n). { omega. }
+    rewrite nat_compare_gt in H2. rewrite H2 in H0. eapply IHt2; eauto.
+Qed.
+
+Lemma tree_gt_implies_not_member :
+  forall (t : tree) (n : nat),
+    tree_gt_n t n -> member t n = true -> False.
+Proof.
+  intros t.
+  induction t; intros; unfold_tree.
+  - inversion H0.
+  - simpl in *. propositional. assert (n0 < n). { omega. }
+    rewrite nat_compare_lt in H2. rewrite H2 in H0. eapply IHt1; eauto.
+Qed.
+
+Theorem not_member_after_delete :
+  forall (t : tree) (n : nat), BST t -> member (delete t n) n = false.
+Proof.
+  intros.
+  rewrite <- Bool.not_true_iff_false.
+  generalize dependent n.
+  induction t; intros; unfold_tree.
+  - simpl. auto.
+  - destruct (n0 ?= n) eqn:H1; bool_to_prop; unfold_tree.
+    + destruct t1.
+      * propositional. apply tree_gt_implies_not_member in H4; eauto.
+      * { remember (Node n0 t1_1 t1_2) as t1. clear Heqt1.
+          propositional.
+          destruct (leftmost t2) eqn:H6.
+          - assert (n < n1). { eapply leftmost_gt_n; eauto. }
+            simpl in H0. rewrite nat_compare_lt in H7. rewrite H7 in H0.
+            apply tree_lt_implies_not_member in H2; eauto.
+          - apply tree_lt_implies_not_member in H2; eauto.
+        }
+    + simpl.
+      rewrite nat_compare_lt in H1. rewrite H1.
+      apply IHt1. propositional.
+    + simpl. assert (n0 > n). { omega. }
+      rewrite nat_compare_gt in H0. rewrite H0.
+      apply IHt2. propositional.
 Qed.
 
 Theorem delete_correct :

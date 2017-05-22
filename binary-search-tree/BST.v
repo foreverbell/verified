@@ -7,20 +7,18 @@ Inductive tree :=
   | Leaf: tree
   | Node: nat -> tree -> tree -> tree.
 
-Fixpoint tree_lt_n (t : tree) (n : nat) : Prop :=
+Fixpoint tree_cmp_n (op : nat -> nat -> Prop) (t : tree) (n : nat) : Prop :=
   match t with
   | Leaf => True
-  | Node v l r => v < n /\ tree_lt_n l n /\ tree_lt_n r n
+  | Node v l r => op v n /\ tree_cmp_n op l n /\ tree_cmp_n op r n
   end.
 
-Fixpoint tree_gt_n (t : tree) (n : nat) : Prop :=
-  match t with
-  | Leaf => True
-  | Node v l r => v > n /\ tree_gt_n l n /\ tree_gt_n r n
-  end.
+Definition tree_lt_n (t : tree) (n : nat) : Prop := tree_cmp_n lt t n.
+Definition tree_gt_n (t : tree) (n : nat) : Prop := tree_cmp_n gt t n.
 
-(* TODO: Merge tree_lt_n and tree_gt_n. *)
-
+(* Binary search tree is a binary tree, such that, for every node, the
+   left child and right child is a BST, and all left children is less
+   than this node, all right children is greater than this node. *)
 Fixpoint BST (t : tree) : Prop :=
   match t with
   | Leaf => True
@@ -28,7 +26,7 @@ Fixpoint BST (t : tree) : Prop :=
   end.
 
 Hint Constructors tree.
-Hint Unfold tree_lt_n tree_gt_n BST.
+Hint Unfold tree_cmp_n tree_lt_n tree_gt_n BST.
 
 Fixpoint insert (t : tree) (n : nat) : tree :=
   match t with
@@ -81,9 +79,11 @@ Fixpoint delete (t : tree) (n : nat) : tree :=
       end
   end.
 
+(* Handy tactics. *)
 Ltac unfold_tree :=
   repeat (
     unfold BST in *; fold BST in *;
+    unfold tree_cmp_n in *; fold tree_cmp_n in *;
     unfold tree_lt_n in *; fold tree_lt_n in *;
     unfold tree_gt_n in *; fold tree_gt_n in *;
     unfold insert in *; fold insert in *;
@@ -102,6 +102,28 @@ Ltac bool_to_prop :=
 
 Ltac propositional := intuition idtac.
 
+(* Proofs. *)
+Lemma tree_cmp_n_insert_preserve :
+  forall (op : nat -> nat -> Prop) (t : tree) (n0 n : nat),
+    tree_cmp_n op t n -> op n0 n -> tree_cmp_n op (insert t n0) n.
+Proof.
+  intros op t.
+  induction t; intros; unfold_tree.
+  - auto.
+  - propositional.
+    destruct (n0 ?= n) eqn:H2; bool_to_prop; unfold_tree; auto.
+Qed.
+
+Corollary tree_lt_n_insert_preserve :
+  forall (t : tree) (n0 n : nat),
+    tree_lt_n t n -> n0 < n -> tree_lt_n (insert t n0) n.
+Proof. intros. apply (tree_cmp_n_insert_preserve lt t n0 n); auto. Qed.
+
+Corollary tree_gt_n_insert_preserve :
+  forall (t : tree) (n0 n : nat),
+    tree_gt_n t n -> n < n0 -> tree_gt_n (insert t n0) n.
+Proof. intros. apply (tree_cmp_n_insert_preserve gt t n0 n); auto. Qed.
+
 Theorem member_after_insert :
   forall (t : tree) (n : nat), BST t -> member (insert t n) n = true.
 Proof.
@@ -110,28 +132,6 @@ Proof.
     rewrite Nat.compare_refl. auto.
   - simpl. unfold_tree. propositional.
     destruct (n ?= n0) eqn:H5; simpl; rewrite H5; auto.
-Qed.
-
-Lemma tree_lt_n_insert_preserve :
-  forall (t : tree) (n0 n : nat),
-    tree_lt_n t n -> n0 < n -> tree_lt_n (insert t n0) n.
-Proof.
-  intros t.
-  induction t; intros; unfold_tree.
-  - auto.
-  - propositional.
-    destruct (n0 ?= n) eqn:H2; bool_to_prop; unfold_tree; auto.
-Qed.
-
-Lemma tree_gt_n_insert_preserve :
-  forall (t : tree) (n0 n : nat),
-    tree_gt_n t n -> n < n0 -> tree_gt_n (insert t n0) n.
-Proof.
-  intros t.
-  induction t; intros; unfold_tree.
-  - auto.
-  - propositional.
-    destruct (n0 ?= n) eqn:H2; bool_to_prop; unfold_tree; auto.
 Qed.
 
 Theorem insert_correct :
@@ -148,45 +148,46 @@ Proof.
       apply tree_gt_n_insert_preserve; auto.
 Qed.
 
-Lemma tree_lt_trans :
+Lemma tree_cmp_trans :
+  forall (op : nat -> nat -> Prop) (t : tree) (n n0 : nat),
+  (forall a b c, op a b -> op b c -> op a c) ->
+  tree_cmp_n op t n -> op n n0 -> tree_cmp_n op t n0.
+Proof.
+  intros op t.
+  induction t; intros; unfold_tree; auto; try propositional; eauto.
+Qed.
+
+Corollary tree_lt_trans :
   forall (t : tree) (n n0 : nat),
   tree_lt_n t n -> n < n0 -> tree_lt_n t n0.
-Proof.
-  intros t.
-  induction t; intros; unfold_tree; auto; try propositional; try omega; eauto.
-Qed.
+Proof. intros. apply (tree_cmp_trans lt t n n0); auto. intros. omega. Qed.
 
-Lemma tree_gt_trans :
+Corollary tree_gt_trans :
   forall (t : tree) (n n0 : nat),
   tree_gt_n t n -> n > n0 -> tree_gt_n t n0.
+Proof. intros. apply (tree_cmp_trans gt t n n0); auto. intros. omega. Qed.
+
+Lemma leftmost_cmp_n :
+  forall (op : nat -> nat -> Prop) (t : tree) (n n0 : nat),
+  tree_cmp_n op t n -> leftmost t = Some n0 -> op n0 n.
 Proof.
-  intros t.
-  induction t; intros; unfold_tree; auto; try propositional; try omega; eauto.
+  intros op t.
+  induction t; intros; unfold_tree.
+  - inversion H0.
+  - destruct t1.
+    + inversion H0. subst. propositional.
+    + apply IHt1; propositional.
 Qed.
 
-Lemma leftmost_lt :
+Corollary leftmost_lt_n :
   forall (t : tree) (n n0 : nat),
   tree_lt_n t n -> leftmost t = Some n0 -> n0 < n.
-Proof.
-  intros t.
-  induction t; intros; unfold_tree.
-  - inversion H0.
-  - destruct t1.
-    + inversion H0. subst. propositional.
-    + apply IHt1; propositional.
-Qed.
+Proof. intros. apply (leftmost_cmp_n lt t n n0); auto. Qed.
 
-Lemma leftmost_gt :
+Corollary leftmost_gt_n :
   forall (t : tree) (n n0 : nat),
   tree_gt_n t n -> leftmost t = Some n0 -> n0 > n.
-Proof.
-  intros t.
-  induction t; intros; unfold_tree.
-  - inversion H0.
-  - destruct t1.
-    + inversion H0. subst. propositional.
-    + apply IHt1; propositional.
-Qed.
+Proof. intros. apply (leftmost_cmp_n gt t n n0); auto. Qed.
 
 (* With this lemma, we can get rid of delete_leftmost! *)
 Lemma delete_leftmost_is_delete :
@@ -199,52 +200,43 @@ Proof.
   - destruct t1.
     + inversion H0; clear H0. rewrite Nat.compare_refl. auto.
     + assert (n0 < n).
-      { eapply leftmost_lt; eauto. propositional. }
+      { eapply leftmost_lt_n; eauto. propositional. }
       rewrite nat_compare_lt in H1. rewrite H1.
       assert (delete_leftmost (Node n1 t1_1 t1_2) = delete (Node n1 t1_1 t1_2) n0).
       { apply IHt1. propositional. auto. }
       rewrite H2. auto.
 Qed.
 
-Lemma tree_lt_n_delete_preserve :
+Lemma tree_cmp_n_delete_preserve :
+  forall (op : nat -> nat -> Prop) (t : tree) (n0 n : nat),
+    BST t -> tree_cmp_n op t n -> tree_cmp_n op (delete t n0) n.
+Proof.
+  intros op t.
+  induction t; intros; unfold_tree.
+  - auto.
+  - destruct (n0 ?= n) eqn:H1; bool_to_prop.
+    + destruct t1; propositional.
+      remember (Node n0 t1_1 t1_2) as t1. clear Heqt1.
+      destruct (leftmost t2) eqn:H7.
+      * assert (op n2 n1). { apply (leftmost_cmp_n op t2 n1 n2); auto. }
+        rewrite (delete_leftmost_is_delete t2 n2); auto.
+        unfold_tree. propositional. auto.
+      * auto.
+    + unfold_tree. propositional. auto.
+    + unfold_tree. propositional. auto.
+Qed.
+
+Corollary tree_lt_n_delete_preserve :
   forall (t : tree) (n0 n : nat),
     BST t -> tree_lt_n t n -> tree_lt_n (delete t n0) n.
-Proof.
-  intros t.
-  induction t; intros; unfold_tree.
-  - auto.
-  - destruct (n0 ?= n) eqn:H1; bool_to_prop.
-    + destruct t1; propositional.
-      remember (Node n0 t1_1 t1_2) as t1. clear Heqt1.
-      destruct (leftmost t2) eqn:H7.
-      * assert (n2 < n1). { apply (leftmost_lt t2 n1 n2); auto. }
-        rewrite (delete_leftmost_is_delete t2 n2); auto.
-        unfold_tree. propositional. auto.
-      * auto.
-    + unfold_tree. propositional. auto.
-    + unfold_tree. propositional. auto.
-Qed.
+Proof. intros. apply (tree_cmp_n_delete_preserve lt t n0 n); auto. Qed.
 
-Lemma tree_gt_n_delete_preserve :
+Corollary tree_gt_n_delete_preserve :
   forall (t : tree) (n0 n : nat),
     BST t -> tree_gt_n t n -> tree_gt_n (delete t n0) n.
-Proof.
-  intros t.
-  induction t; intros; unfold_tree.
-  - auto.
-  - destruct (n0 ?= n) eqn:H1; bool_to_prop.
-    + destruct t1; propositional.
-      remember (Node n0 t1_1 t1_2) as t1. clear Heqt1.
-      destruct (leftmost t2) eqn:H7.
-      * assert (n2 > n1). { apply (leftmost_gt t2 n1 n2); auto. }
-        rewrite (delete_leftmost_is_delete t2 n2); auto.
-        unfold_tree. propositional. auto.
-      * auto.
-    + unfold_tree. propositional. auto.
-    + unfold_tree. propositional. auto.
-Qed.
+Proof. intros. apply (tree_cmp_n_delete_preserve gt t n0 n); auto. Qed.
 
-Theorem delete_leftmost_gt_n :
+Lemma delete_leftmost_gt_n :
   forall (t : tree) (n n0 : nat),
     BST t -> leftmost t = Some n0 -> tree_gt_n t n -> tree_gt_n (delete_leftmost t) n0.
 Proof.
@@ -255,7 +247,7 @@ Proof.
     + inversion H0. subst. propositional.
     + remember (Node n2 t1_1 t1_2) as t1. clear Heqt1.
       unfold_tree.
-      assert (n1 < n). { propositional. eapply leftmost_lt; eauto. }
+      assert (n1 < n). { propositional. eapply leftmost_lt_n; eauto. }
       propositional.
       * eapply IHt1; eauto.
       * eapply tree_gt_trans; eauto.
@@ -274,7 +266,7 @@ Proof.
           - remember (Node n0 t1_1 t1_2) as t1. clear Heqt1.
             unfold_tree. propositional.
             + rewrite (delete_leftmost_is_delete t2 n1); auto.
-            + assert (n1 > n). { eapply leftmost_gt. apply H4. apply H1. }
+            + assert (n1 > n). { eapply leftmost_gt_n. apply H4. apply H1. }
               eapply tree_lt_trans. eauto. omega.
             + eapply delete_leftmost_gt_n; eauto.
           - propositional.

@@ -1,3 +1,5 @@
+Require Import Coq.Lists.List.
+
 Section Trie.
 
 Variable A : Set.
@@ -53,8 +55,8 @@ Fixpoint insert (bs : bits) (v : A) (t : trie) : trie :=
   | Node l r v' =>
      match bs with
      | nil => Node l r (Some v)
-     | cons true bs' => Node (insert bs' v (new l)) r v'
-     | cons false bs' => Node l (insert bs' v (new r)) v'
+     | true :: bs' => Node (insert bs' v (new l)) r v'
+     | false :: bs' => Node l (insert bs' v (new r)) v'
      end
   end.
 
@@ -64,15 +66,15 @@ Fixpoint search (bs : bits) (t : trie) : option A :=
   | Node l r v =>
      match bs with
      | nil => v
-     | cons true bs' => search bs' l
-     | cons false bs' => search bs' r
+     | true :: bs' => search bs' l
+     | false :: bs' => search bs' r
      end
   end.
 
 Inductive IsNode : trie -> Prop :=
 | isnode: forall l r v, IsNode (Node l r v).
 
-Theorem new_isNode :
+Theorem new_IsNode :
   forall (t : trie), IsNode (new t).
 Proof.
   unfold new.
@@ -91,8 +93,8 @@ Proof.
     unfold insert. unfold search.
     fold insert. fold search.
     destruct a.
-    + apply IHbs. apply new_isNode.
-    + assert (IsNode (new r)). { apply new_isNode. }
+    + apply IHbs. apply new_IsNode.
+    + assert (IsNode (new r)). { apply new_IsNode. }
       apply IHbs; auto.
 Qed.
 

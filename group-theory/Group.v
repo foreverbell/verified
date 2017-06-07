@@ -159,4 +159,20 @@ Proof.
   apply id_l.
 Qed.
 
+Theorem inv_a_eq_a_implies_abelian :
+  (forall (a : G), a = i a) -> forall (x y : G), x * y = y * x.
+Proof.
+  intros.
+  assert (x = i x) as H1.
+  { apply H. }
+  assert (y = i y) as H2.
+  { apply H. }
+  assert ((y * x) = i (y * x)) as H3.
+  { apply H. }
+  rewrite inv_distr in H3.
+  rewrite H1 at 1.
+  rewrite H2 at 1.
+  auto.
+Qed.
+
 End Group.

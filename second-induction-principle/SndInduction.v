@@ -1,7 +1,14 @@
 Require Import Omega.
 
-(** Second induction principle on natural number. *)
+(** Second induction principle on natural number. The principle
+    states that, for any given proposition and natural number [n],
+    if this proposition holds for any [k] that is smaller than [n],
+    then the [n] case also holds, we can conclude this proposition
+    holds for any given natural number [n]. *)
 
+(** To prove this principle, we first need to strengthen the hypothesis,
+    so we will not lose track of any previous proof during the induction
+    using the first induction principle. *)
 Theorem snd_principle' :
   forall (P: nat -> Prop),
     (forall n, (forall k, k < n -> P k) -> P n) ->
@@ -32,6 +39,7 @@ Proof.
   tauto.
 Qed.
 
+(** Let us see a little overkill example. *)
 Fixpoint f (n : nat) : nat :=
   match n with
   | 0 => 0

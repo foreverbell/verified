@@ -141,18 +141,16 @@ Proof.
 Qed.
 
 Lemma div2_mul2_vals :
-  forall (n : nat), n = 2 * (n / 2) \/ n = 2 * (n / 2) + 1.
+  forall (n : nat), n = 2*(n/2) \/ n = 2*(n/2)+1.
 Proof.
   intros. remember (n/2) as k.
-  assert (2 * k <= n). { rewrite Heqk. apply Nat.mul_div_le. omega. }
-  assert (n mod 2 = n - 2 * (n/2)). { apply Nat.mod_eq. omega. }
+  assert (2*k <= n). { rewrite Heqk. apply Nat.mul_div_le. omega. }
+  assert (n mod 2 = n - 2*(n/2)). { apply Nat.mod_eq. omega. }
   rewrite <- Heqk in H0.
   assert (n mod 2 < 2). { apply Nat.mod_upper_bound. omega. }
   rewrite H0 in H1.
-  assert (n - 2 * k = 0 \/ n - 2 * k = 1). { omega. }
-  destruct H2.
-  - left. omega.
-  - right. omega.
+  assert (n - 2*k = 0 \/ n - 2*k = 1). { omega. }
+  destruct H2; omega.
 Qed.
 
 Lemma div2_neq_n :
@@ -314,8 +312,7 @@ Proof.
     { apply IHheight.
       - auto.
       - auto.
-      - apply log2_div2. auto. auto.
-    }
+      - apply log2_div2. auto. auto. }
     unfold Heap in H. destruct H. eauto.
 Qed.
 
@@ -383,14 +380,12 @@ Proof.
               * rewrite swap_get1.
                 apply H2. split; auto.
                 assert (2*(i/2) <= i). { auto. } omega.
-              * rewrite swap_get3; eauto.
-        }
+              * rewrite swap_get3; eauto. }
       * intros. destruct H5.
         unfold heap_array.
         { destruct (k =? i) eqn:H7; bool_to_prop.
           - assert (2 <= i/2). { auto. }
             assert (i/2 < i). { apply div2_lt_n. omega. }
-            assert (i/2/2 <= i/2). { apply div2_le_n. }
             assert (i/2/2 < i/2). { apply div2_lt_n. omega. }
             rewrite swap_get1.
             rewrite swap_get3.
@@ -402,13 +397,11 @@ Proof.
             assert (4 <= k). { rewrite <- H6 in H11. omega. }
             assert (2 <= k/2). { rewrite <- H6 in H11. omega. }
             assert (k/2 < k). { apply div2_lt_n. omega. }
-            assert (2 <= k/2). { auto. }
             assert (k/2/2 < k/2). { apply div2_lt_n. omega. }
             rewrite swap_get3. rewrite swap_get3.
             eapply Nat.le_trans. apply H1. omega.
             rewrite H6. apply H1. split. rewrite <- H6.
-            omega. omega. omega. omega. omega. omega.
-        }
+            omega. omega. omega. omega. omega. omega. }
       * intros. destruct H0. simpl in H5. unfold heap_array.
         rewrite swap_get3. apply H3. auto. omega.
         assert (k/2 <= k). { auto. } omega.
@@ -420,7 +413,7 @@ Qed.
 
 Theorem heap_push_correct :
   forall (h : heap) (v : nat),
-  Heap h -> Heap (heap_push h v).
+    Heap h -> Heap (heap_push h v).
 Proof.
   intros.
   unfold heap_push.
@@ -456,8 +449,8 @@ Qed.
 
 Theorem heap_pop_maximum :
   forall (h : heap) (v : nat),
-  Heap h -> snd (heap_pop h) = Some v ->
-    (forall (i : nat), i > 0 -> getv (heap_array h) i <= v).
+    Heap h -> snd (heap_pop h) = Some v ->
+      (forall (i : nat), i > 0 -> getv (heap_array h) i <= v).
 Proof.
   intros.
   unfold heap_pop in H0.
@@ -514,8 +507,7 @@ Proof.
                     rewrite H10. rewrite swap_get1. auto.
                   - assert (i/2 <> k). { auto. }
                     rewrite swap_get3; auto.
-                    rewrite swap_get3; auto.
-                }
+                    rewrite swap_get3; auto. }
           - intros. destruct H6.
             assert ((2*k+1)/2 = k). { auto. }
             assert (i/2 < i). { apply div2_lt_n. omega. }
@@ -528,16 +520,14 @@ Proof.
             + assert (getv a (2*k+1) = 0). { apply H3. omega. }
               omega.
             + rewrite swap_get3. apply H3.
-              omega. omega. omega.
-        }
+              omega. omega. omega. }
       * { unfold Heap. split.
           - intros.
             destruct (k =? i/2) eqn:H7; bool_to_prop.
             + assert (i = 2 * (i / 2) \/ i = 2 * (i / 2) + 1). { apply div2_mul2_vals. }
               destruct H7; rewrite <- H7 in *; eauto.
             + apply H1. auto.
-          - auto.
-        }
+          - auto. }
     + (* almost duplicate proof as last bullet. *)
       destruct (getv (heap_array h) k <? getv (heap_array h) (2 * k)) eqn:H5; bool_to_prop.
       * { apply IHheight; clear IHheight.
@@ -558,8 +548,7 @@ Proof.
                     rewrite H10. rewrite swap_get1. auto.
                   - assert (i/2 <> k). { auto. }
                     rewrite swap_get3; auto.
-                    rewrite swap_get3; auto.
-                }
+                    rewrite swap_get3; auto. }
           - intros. destruct H6.
             assert (2*k/2 = k). { auto. }
             assert (i/2 < i). { apply div2_lt_n. omega. }
@@ -572,21 +561,19 @@ Proof.
             + assert (getv a (2*k) = 0). { apply H3. omega. }
               omega.
             + rewrite swap_get3. apply H3.
-              omega. omega. omega.
-        }
+              omega. omega. omega. }
       * { unfold Heap. split.
           - intros.
             destruct (k =? i/2) eqn:H7; bool_to_prop.
             + assert (i = 2*(i/2) \/ i = 2*(i/2)+1). { apply div2_mul2_vals. }
               destruct H7; rewrite <- H7 in *; eauto.
             + apply H1. auto.
-          - auto.
-        }
+          - auto. }
 Qed.
 
 Theorem heap_pop_correct :
   forall (h : heap),
-  Heap h -> Heap (fst (heap_pop h)).
+    Heap h -> Heap (fst (heap_pop h)).
 Proof.
   intros.
   unfold heap_pop.
@@ -615,14 +602,12 @@ Proof.
             assert (S (S n) < i). { assert (i/2 < i). { auto. } omega. }
             rewrite getv_ne. rewrite getv_eq.
             rewrite swap_get3. rewrite H3.
-            omega. omega. omega. omega. omega.
-        }
+            omega. omega. omega. omega. omega. }
         { - destruct (i =? S (S n)) eqn:H5; bool_to_prop.
             + rewrite getv_eq. omega.
             + rewrite getv_ne. rewrite getv_ne.
               rewrite swap_get3. rewrite swap_get3. apply H.
-              omega. omega. omega. omega. omega. omega. omega.
-        }
+              omega. omega. omega. omega. omega. omega. omega. }
       * intros. destruct H0.
         assert (2 <= i/2). { auto. } omega.
       * intros. rewrite shrink_heap_n in H0. rewrite H1 in H0. simpl in H0.

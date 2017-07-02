@@ -39,6 +39,15 @@ Proof.
   tauto.
 Qed.
 
+(** Or directly, using the well foundness of [lt]. *)
+Theorem snd_principle_2 :
+  forall (P: nat -> Prop),
+    (forall n, (forall k, k < n -> P k) -> P n) ->
+    (forall n, P n).
+Proof.
+  apply (well_founded_ind Nat.lt_wf_0).
+Qed.
+
 (** Let us see a little overkill example. *)
 Fixpoint f (n : nat) : nat :=
   match n with

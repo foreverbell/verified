@@ -1,6 +1,8 @@
 Require Import Coq.Arith.Arith.
 Require Import Omega.
 
+Require Import Tactics.Bool2Prop.
+
 (* This formalization of BST is slightly modified from 6.887's homework. *)
 
 Inductive tree :=
@@ -99,14 +101,6 @@ Ltac unfold_tree :=
     unfold delete in *; fold delete in *
   ).
 
-Ltac bool_to_prop :=
-  repeat
-    try match goal with
-        | [ H : (_ ?= _) = Eq |- _] => apply Nat.compare_eq_iff in H; subst
-        | [ H : (_ ?= _) = Lt |- _] => apply Nat.compare_lt_iff in H
-        | [ H : (_ ?= _) = Gt |- _] => apply Nat.compare_gt_iff in H
-        end.
-
 Ltac propositional := intuition idtac.
 
 (* Proofs.
@@ -125,7 +119,7 @@ Proof.
   induction t; intros; unfold_tree.
   - auto.
   - propositional.
-    destruct (n0 ?= n) eqn:H2; bool_to_prop; unfold_tree; auto.
+    destruct (n0 ?= n) eqn:H2; b2p; unfold_tree; auto.
 Qed.
 
 Corollary tree_lt_n_insert_preserve :
@@ -154,7 +148,7 @@ Proof.
   intros t.
   induction t; intros; unfold_tree.
   - simpl. auto.
-  - destruct (n0 ?= n) eqn:H1; bool_to_prop; unfold_tree.
+  - destruct (n0 ?= n) eqn:H1; b2p; unfold_tree.
     + auto.
     + propositional; auto.
       apply tree_lt_n_insert_preserve; auto.
@@ -228,7 +222,7 @@ Proof.
   intros op t.
   induction t; intros; unfold_tree.
   - auto.
-  - destruct (n0 ?= n) eqn:H1; bool_to_prop.
+  - destruct (n0 ?= n) eqn:H1; b2p.
     + destruct t1; propositional.
       remember (Node n0 t1_1 t1_2) as t1. clear Heqt1.
       destruct (leftmost t2) eqn:H7.
@@ -297,7 +291,7 @@ Proof.
   generalize dependent n.
   induction t; intros; unfold_tree.
   - simpl. auto.
-  - destruct (n0 ?= n) eqn:H1; bool_to_prop; unfold_tree.
+  - destruct (n0 ?= n) eqn:H1; b2p; unfold_tree.
     + destruct t1.
       * propositional. apply tree_gt_implies_not_member in H4; eauto.
       * { remember (Node n0 t1_1 t1_2) as t1. clear Heqt1.
@@ -322,7 +316,7 @@ Proof.
   intros t.
   induction t; intros; unfold_tree.
   - simpl. auto.
-  - destruct (n0 ?= n) eqn:H1; bool_to_prop; unfold_tree.
+  - destruct (n0 ?= n) eqn:H1; b2p; unfold_tree.
     + destruct t1.
       * propositional.
       * { destruct (leftmost t2) eqn:H1.

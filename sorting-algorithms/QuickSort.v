@@ -152,13 +152,6 @@ Proof.
       apply IHl0; crush; inversion H; crush.
 Qed.
 
-Lemma all_le_permutation :
-  forall n l0 l1, AllLe n l0 -> Permutation l0 l1 -> AllLe n l1.
-Proof.
-  intros.
-  pose proof (Forall_Permutation nat l0 l1 (fun x => n <= x)); auto.
-Qed.
-
 Theorem quicksort_ok :
   SortSpec quicksort.
 Proof.

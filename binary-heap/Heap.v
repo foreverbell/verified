@@ -1,8 +1,10 @@
 Require Import Coq.Arith.Arith.
 Require Import Coq.Init.Nat.
+Require Import Coq.Logic.FunctionalExtensionality.
 
 Require Import Omega.
-Require Import Coq.Logic.FunctionalExtensionality.
+
+Require Import Tactics.Bool2Prop.
 
 (** Simple formalization of an array. *)
 
@@ -255,16 +257,6 @@ Definition heap_pop (h : heap) : (heap * option nat) :=
   | S n => (heap_downify (shrink_heap h) 1 (log2 n), Some (heap_array h 1))
   end.
 
-(* Handy tactics for case analysis. *)
-Ltac bool_to_prop :=
-  repeat
-    try match goal with
-        | [ H : (_ =? _) = true |- _] => apply beq_nat_true in H; subst
-        | [ H : (_ =? _) = false |- _] => apply beq_nat_false in H
-        | [ H : (_ <? _) = true |- _] => apply Nat.ltb_lt in H
-        | [ H : (_ <? _) = false |- _] => apply Nat.ltb_ge in H
-        end.
-
 (* Here comes the proof of verifying heap is correct. *)
 
 (* extending heap will add one element. *)
@@ -293,7 +285,7 @@ Proof.
   intros.
   simpl.
   unfold setv. unfold getv.
-  destruct (i =? S (heap_n h)) eqn:H1; bool_to_prop; omega.
+  destruct (i =? S (heap_n h)) eqn:H1; b2p; omega.
 Qed.
 
 (* h[1] is the maximum element of a heap. *)
@@ -358,7 +350,7 @@ Proof.
     { split. apply Nat.log2_lt_cancel. rewrite Nat.log2_1. rewrite H. omega.
       destruct H0. auto. }
     clear H0. rename H4 into H0.
-    destruct (getv (heap_array h) (k/2) <? getv (heap_array h) k) eqn:H4; bool_to_prop.
+    destruct (getv (heap_array h) (k/2) <? getv (heap_array h) k) eqn:H4; b2p.
     + apply IHheight; clear IHheight.
       * apply log2_div2; auto. destruct H0. auto.
       * assert (1 <= k/2). { assert (2 <= k). { omega. } auto. }
@@ -367,23 +359,23 @@ Proof.
         destruct H0. simpl. eauto.
       * intros. destruct H5.
         unfold heap_array. unfold heap_array in H4.
-        { destruct (k =? i) eqn:H7; bool_to_prop.
+        { destruct (k =? i) eqn:H7; b2p.
           - rewrite swap_get1. rewrite swap_get2. auto.
-          - destruct (k/2 =? i/2) eqn:H8; bool_to_prop.
+          - destruct (k/2 =? i/2) eqn:H8; b2p.
             + rewrite <- H8.
               rewrite swap_get2. rewrite swap_get3; try omega.
               apply Nat.lt_le_incl in H4.
               eapply Nat.le_trans; try apply H4.
               rewrite H8. auto.
             + unfold heap_array. rewrite swap_get3; try omega.
-              destruct (k =? i/2) eqn:H9; bool_to_prop.
+              destruct (k =? i/2) eqn:H9; b2p.
               * rewrite swap_get1.
                 apply H2. split; auto.
                 assert (2*(i/2) <= i). { auto. } omega.
               * rewrite swap_get3; eauto. }
       * intros. destruct H5.
         unfold heap_array.
-        { destruct (k =? i) eqn:H7; bool_to_prop.
+        { destruct (k =? i) eqn:H7; b2p.
           - assert (2 <= i/2). { auto. }
             assert (i/2 < i). { apply div2_lt_n. omega. }
             assert (i/2/2 < i/2). { apply div2_lt_n. omega. }
@@ -407,7 +399,7 @@ Proof.
         assert (k/2 <= k). { auto. } omega.
     + unfold Heap. split.
       * intros.
-        destruct (k =? i) eqn:H6; bool_to_prop; auto.
+        destruct (k =? i) eqn:H6; b2p; auto.
       * auto.
 Qed.
 
@@ -424,7 +416,7 @@ Proof.
     { apply extend_heap_unaffected. auto. }
     rewrite H2.
     destruct H.
-    destruct (i/2 =? S (heap_n h)) eqn:H4; bool_to_prop.
+    destruct (i/2 =? S (heap_n h)) eqn:H4; b2p.
     + assert (i/2 <= i). { auto. } rewrite H4 in H5.
       assert (getv (heap_array h) i = 0). { apply H3. auto. }
       rewrite H6. omega.
@@ -481,27 +473,27 @@ Proof.
     { apply Nat.log2_lt_cancel. rewrite Nat.log2_double. omega. omega. }
     unfold Heap. split; unfold heap_downify.
     + intros.
-      destruct (k =? (i/2)) eqn:H6; bool_to_prop.
+      destruct (k =? (i/2)) eqn:H6; b2p.
       * assert (heap_n h < i). { assert (2*(i/2) <= i). { auto. } omega. }
         rewrite H3; omega.
       * apply H1. auto.
     + auto.
   - intros. unfold heap_downify. fold heap_downify.
-    destruct (getv (heap_array h) (2*k) <? getv (heap_array h) (2*k+1)) eqn:H4; bool_to_prop.
-    + destruct (getv (heap_array h) k <? getv (heap_array h) (2*k+1)) eqn:H5; bool_to_prop.
+    destruct (getv (heap_array h) (2*k) <? getv (heap_array h) (2*k+1)) eqn:H4; b2p.
+    + destruct (getv (heap_array h) k <? getv (heap_array h) (2*k+1)) eqn:H5; b2p.
       * { apply IHheight; clear IHheight.
           - rewrite Nat.log2_succ_double. simpl. omega. auto.
           - omega.
           - intros. destruct H6. unfold heap_array.
-            destruct (i =? k) eqn:H8; bool_to_prop.
+            destruct (i =? k) eqn:H8; b2p.
             + assert (k/2 < k). { auto. }
               rewrite swap_get1. rewrite swap_get3; try omega.
               apply H2. split. omega. auto.
-            + destruct (i =? 2*k) eqn:H9; bool_to_prop.
+            + destruct (i =? 2*k) eqn:H9; b2p.
               * rewrite swap_get3; try omega.
                 assert (2*k/2 = k). { auto. }
                 rewrite H9. rewrite swap_get1. auto.
-              * { destruct (i =? 2*k+1) eqn:H10; bool_to_prop.
+              * { destruct (i =? 2*k+1) eqn:H10; b2p.
                   - rewrite swap_get2.
                     assert ((2*k+1)/2 = k). { auto. }
                     rewrite H10. rewrite swap_get1. auto.
@@ -516,33 +508,33 @@ Proof.
             rewrite <- H7. apply H1. omega. omega. omega.
           - unfold heap_n, heap_array in *. intros. destruct h.
             assert (k < n). { apply Nat.log2_lt_cancel. omega. }
-            destruct (i =? 2*k+1) eqn:H8; bool_to_prop.
+            destruct (i =? 2*k+1) eqn:H8; b2p.
             + assert (getv a (2*k+1) = 0). { apply H3. omega. }
               omega.
             + rewrite swap_get3. apply H3.
               omega. omega. omega. }
       * { unfold Heap. split.
           - intros.
-            destruct (k =? i/2) eqn:H7; bool_to_prop.
+            destruct (k =? i/2) eqn:H7; b2p.
             + assert (i = 2 * (i / 2) \/ i = 2 * (i / 2) + 1). { apply div2_mul2_vals. }
               destruct H7; rewrite <- H7 in *; eauto.
             + apply H1. auto.
           - auto. }
     + (* almost duplicate proof as last bullet. *)
-      destruct (getv (heap_array h) k <? getv (heap_array h) (2 * k)) eqn:H5; bool_to_prop.
+      destruct (getv (heap_array h) k <? getv (heap_array h) (2 * k)) eqn:H5; b2p.
       * { apply IHheight; clear IHheight.
           - rewrite Nat.log2_double. simpl. omega. auto.
           - omega.
           - intros. destruct H6. unfold heap_array.
-            destruct (i =? k) eqn:H8; bool_to_prop.
+            destruct (i =? k) eqn:H8; b2p.
             + assert (k/2 < k). { auto. }
               rewrite swap_get1. rewrite swap_get3; try omega.
               apply H2. split. omega. auto.
-            + destruct (i =? 2*k+1) eqn:H9; bool_to_prop.
+            + destruct (i =? 2*k+1) eqn:H9; b2p.
               * rewrite swap_get3; try omega.
                 assert ((2*k+1)/2 = k). { auto. }
                 rewrite H9. rewrite swap_get1. auto.
-              * { destruct (i =? 2*k) eqn:H10; bool_to_prop.
+              * { destruct (i =? 2*k) eqn:H10; b2p.
                   - rewrite swap_get2.
                     assert (2*k/2 = k). { auto. }
                     rewrite H10. rewrite swap_get1. auto.
@@ -557,14 +549,14 @@ Proof.
             rewrite <- H7. apply H1. omega. omega. omega.
           - unfold heap_n, heap_array in *. intros. destruct h.
             assert (k < n). { apply Nat.log2_lt_cancel. omega. }
-            destruct (i =? 2*k) eqn:H8; bool_to_prop.
+            destruct (i =? 2*k) eqn:H8; b2p.
             + assert (getv a (2*k) = 0). { apply H3. omega. }
               omega.
             + rewrite swap_get3. apply H3.
               omega. omega. omega. }
       * { unfold Heap. split.
           - intros.
-            destruct (k =? i/2) eqn:H7; bool_to_prop.
+            destruct (k =? i/2) eqn:H7; b2p.
             + assert (i = 2*(i/2) \/ i = 2*(i/2)+1). { apply div2_mul2_vals. }
               destruct H7; rewrite <- H7 in *; eauto.
             + apply H1. auto.
@@ -589,7 +581,7 @@ Proof.
       * intros. simpl in H0. rewrite getv_ne. rewrite H0.
         omega. omega. omega.
       * intros. simpl in H0.
-        destruct (i =? 1) eqn:H2; bool_to_prop.
+        destruct (i =? 1) eqn:H2; b2p.
         subst. auto.
         rewrite getv_ne. rewrite H0. auto. omega. omega.
     + apply heap_downify_correct; try omega.
@@ -597,13 +589,13 @@ Proof.
         auto.
       * intros. destruct H0. unfold Heap in H. destruct H.
         unfold shrink_heap. unfold heap_array, heap_n in *. destruct h. subst.
-        destruct (i/2 =? S (S n)) eqn:H4; bool_to_prop.
+        destruct (i/2 =? S (S n)) eqn:H4; b2p.
         { - rewrite -> H4.
             assert (S (S n) < i). { assert (i/2 < i). { auto. } omega. }
             rewrite getv_ne. rewrite getv_eq.
             rewrite swap_get3. rewrite H3.
             omega. omega. omega. omega. omega. }
-        { - destruct (i =? S (S n)) eqn:H5; bool_to_prop.
+        { - destruct (i =? S (S n)) eqn:H5; b2p.
             + rewrite getv_eq. omega.
             + rewrite getv_ne. rewrite getv_ne.
               rewrite swap_get3. rewrite swap_get3. apply H.
@@ -613,7 +605,7 @@ Proof.
       * intros. rewrite shrink_heap_n in H0. rewrite H1 in H0. simpl in H0.
         unfold Heap in H. destruct H. rewrite H1 in H2.
         unfold shrink_heap, heap_array, heap_n in *. destruct h. subst.
-        destruct (i =? S (S n)) eqn:H3; bool_to_prop.
+        destruct (i =? S (S n)) eqn:H3; b2p.
         { rewrite getv_eq. auto. }
         { rewrite getv_ne, swap_get3.
           apply H2. omega. omega. omega. omega. }

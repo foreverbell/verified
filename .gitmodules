@@ -1,0 +1,3 @@
+[submodule "tactics"]
+	path = tactics
+	url = git@github.com:foreverbell/tactics.git

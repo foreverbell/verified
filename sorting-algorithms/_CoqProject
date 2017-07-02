@@ -1,3 +1,5 @@
+-R . Sorting
 -R ../tactics Tactics
 SortSpec.v
 InsertSort.v
+QuickSort.v

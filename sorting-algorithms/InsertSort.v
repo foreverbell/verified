@@ -4,15 +4,11 @@ Require Import Coq.Lists.List.
 Require Import Permutation.
 Require Import SortSpec.
 
+Require Import Tactics.Bool2Prop.
 Require Import Tactics.CpdtTactics.
 
-Ltac b2p :=
-  repeat
-    try match goal with
-        | [ H : (_ <=? _) = true |- _] => apply leb_complete in H
-        | [ H : (_ <=? _) = false |- _] => apply leb_complete_conv in H
-        end.
-
+(** Body of insert sort. Sort the rest list, and insert the head
+    element into the sorted rest list. *)
 Fixpoint insert (x : nat) (l : list nat) : list nat :=
   match l with
   | nil => x :: nil
@@ -27,6 +23,10 @@ Fixpoint insertsort (l : list nat) : list nat :=
   | x :: l' => insert x (insertsort l')
   end.
 
+Extraction insert.
+Extraction insertsort.
+
+(** Insert keeps a sorted list still sorted. *)
 Lemma insert_keeps_sorted :
   forall l x, Sorted l -> Sorted (insert x l).
 Proof.
@@ -38,6 +38,7 @@ Proof.
   destruct (x <=? n) eqn:H3; b2p; crush.
 Qed.
 
+(** Insert keeps a permutation still a permutation. *)
 Lemma insert_keeps_permutation :
   forall l l' x, Permutation l l' -> Permutation (x :: l) (insert x l').
 Proof.

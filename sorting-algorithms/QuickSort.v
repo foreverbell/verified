@@ -5,15 +5,12 @@ Require Import Coq.Logic.FunctionalExtensionality.
 Require Import Permutation.
 Require Import SortSpec.
 
+Require Import Tactics.Bool2Prop.
 Require Import Tactics.CpdtTactics.
 
-Ltac b2p :=
-  repeat
-    try match goal with
-        | [ H : (_ <=? _) = true |- _] => apply leb_complete in H
-        | [ H : (_ <=? _) = false |- _] => apply leb_complete_conv in H
-        end.
-
+(** Our formalization of QuickSort relies on the inductive type family "Forall"
+    and "Permutation", before starting our proof, admit a missing lemma in Coq
+    standard library about the relation between "Permutation" and "Forall". *)
 Lemma Forall_Permutation :
   forall A (l l' : list A) P, Forall P l -> Permutation l l' -> Forall P l'.
 Proof.
@@ -24,10 +21,25 @@ Proof.
   apply H. apply H0.
 Qed.
 
+(** All elements in [l] is less or greater than [x]. *)
 Definition AllLe (x : nat) (l : list nat) : Prop := Forall (fun y => x <= y) l.
 Definition AllGe (x : nat) (l : list nat) : Prop := Forall (fun y => x >= y) l.
 
 Hint Unfold AllLe AllGe.
+
+(** Useful lemmas. *)
+Lemma all_le_ge_sorted :
+  forall n l0 l1, AllGe n l0 -> AllLe n l1 -> Sorted l0 -> Sorted l1 ->
+    Sorted (l0 ++ (n :: nil) ++ l1).
+Proof.
+  intros n l0.
+  induction l0; intros; simpl.
+  - inversion H0; subst; crush.
+  - destruct l0.
+    + constructor; crush; inversion H; auto.
+    + simpl; constructor; crush; inversion H1; crush.
+      apply IHl0; crush; inversion H; crush.
+Qed.
 
 Lemma lnilge1 :
   length (@nil nat) >= 1 -> False.
@@ -41,6 +53,22 @@ Proof.
   intros; destruct l; crush.
 Qed.
 
+(** Different from other sorting algorithms like insert sort, quick sort is not
+    easy to define in Coq. For a recursive function definition, Coq needs to
+    check if this function can teminate for any input. However, Coq's criteria
+    for recursion termination is too conservative, recursive calls are only allowed
+    on synatistics subterms of the original primary argument.
+
+    Quicksort finds a pivot, and partition the list into two sublists, which contain
+    all elements except the pivot that are smaller / greater than the pivot. The two
+    sublists are not synatistics subterm of the input list, so the "stupid" Gallina
+    will complain that recursive call to quicksort has illformed principal argument.
+
+    But clearly we know that the length of two sublists is strictly decreasing, Coq's
+    "well founded recursion" allows us to leverage this property to define quicksort,
+    see CDPT chapter 7 for more details.
+*)
+
 Definition lengthOrder (l1 l2 : list nat) :=
   length l1 < length l2.
 
@@ -51,12 +79,14 @@ Proof.
   unfold lengthOrder; induction len; crush.
 Defined.
 
+(** [lengthOrder] is well-founded relation. *)
 Theorem lengthOrder_wf : well_founded lengthOrder.
 Proof.
   Hint Constructors Acc.
   unfold lengthOrder; intro; eapply lengthOrder_wf'; eauto.
 Defined.
 
+(** Divide the list [l] with respect to the ordering to [x] into two lists. *)
 Fixpoint divide (x : nat) (l : list nat) : (list nat) * (list nat) :=
   match l with
   | nil => (nil, nil)
@@ -64,12 +94,16 @@ Fixpoint divide (x : nat) (l : list nat) : (list nat) * (list nat) :=
                 in if (y <=? x) then (y :: p1, p2) else (p1, y :: p2)
   end.
 
+(** Use the head element as pivot and divide the rest elements.
+    Notice [pivot] only accepts non-empty list, so we use dependent type to
+    force user to pass a proof about [l]'s non-emptyness. *)
 Definition pivot (l : list nat) : (length l >= 1) -> nat * ((list nat) * (list nat)) :=
   match l with
   | nil => fun proof : length nil >= 1 => match lnilge1 proof with end
   | x :: l' => fun _ => (x, divide x l')
   end.
 
+(** Specification and property of [divide] and [pivot]. *)
 Lemma divide_spec :
   forall x l l1 l2,
     (l1, l2) = divide x l -> AllLe x l2 /\ AllGe x l1 /\ Permutation (l1 ++ l2) l.
@@ -80,7 +114,7 @@ Proof.
   apply Permutation_sym; apply Permutation_cons_app; crush.
 Qed.
 
-Lemma divide_length :
+Corollary divide_length :
   forall x l l1 l2,
     (l1, l2) = divide x l -> length l1 <= length l /\ length l2 <= length l.
 Proof.
@@ -109,6 +143,7 @@ Proof.
   intros; unfold pivot in H; destruct l; crush; apply divide_spec in H; crush.
 Qed.
 
+(** The body of quicksort. *)
 Definition quicksort : list nat -> list nat.
   refine (Fix lengthOrder_wf (fun _ => list nat)
     (fun (l : list nat)
@@ -127,6 +162,9 @@ Extraction divide.
 Extraction pivot.
 Extraction quicksort.
 
+(** Rather than "unfold quicksort" to expand [quicksort], we should turn to use
+    this theorem to avoid annoying [Fix] appear as barrier to prove the SortSpec
+    of quicksort. *)
 Theorem quicksort_eq : forall l,
   quicksort l =
     match ge_dec (length l) 1 with
@@ -137,19 +175,6 @@ Theorem quicksort_eq : forall l,
 Proof.
   intros. apply (Fix_eq lengthOrder_wf (fun _ => list nat)); intros.
   destruct (ge_dec (length x) 1); simpl; repeat f_equal; auto.
-Qed.
-
-Lemma all_le_ge_sorted :
-  forall n l0 l1, AllGe n l0 -> AllLe n l1 -> Sorted l0 -> Sorted l1 ->
-    Sorted (l0 ++ (n :: nil) ++ l1).
-Proof.
-  intros n l0.
-  induction l0; intros; simpl.
-  - inversion H0; subst; crush.
-  - destruct l0.
-    + constructor; crush; inversion H; auto.
-    + simpl; constructor; crush; inversion H1; crush.
-      apply IHl0; crush; inversion H; crush.
 Qed.
 
 Theorem quicksort_ok :

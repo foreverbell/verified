@@ -26,6 +26,14 @@ Fixpoint insertsort (l : list nat) : list nat :=
 Extraction insert.
 Extraction insertsort.
 
+Notation "[ ]" := nil.
+Notation "[ x , .. , y ]" := (cons x .. (cons y nil) ..).
+Example insertsort_pi :
+  insertsort [3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5] = [1, 1, 2, 3, 3, 4, 5, 5, 5, 6, 9].
+Proof.
+  simpl; reflexivity.
+Qed.
+
 (** Insert keeps a sorted list still sorted. *)
 Lemma insert_keeps_sorted :
   forall l x, Sorted l -> Sorted (insert x l).

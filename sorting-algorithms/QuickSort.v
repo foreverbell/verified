@@ -177,6 +177,15 @@ Proof.
   destruct (ge_dec (length x) 1); simpl; repeat f_equal; auto.
 Qed.
 
+Notation "[ ]" := nil.
+Notation "[ x , .. , y ]" := (cons x .. (cons y nil) ..).
+Example quicksort_pi :
+  quicksort [3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5] = [1, 1, 2, 3, 3, 4, 5, 5, 5, 6, 9].
+Proof.
+  repeat (rewrite quicksort_eq; simpl).
+  reflexivity.
+Qed.
+
 Theorem quicksort_ok :
   SortSpec quicksort.
 Proof.

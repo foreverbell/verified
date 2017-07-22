@@ -2,6 +2,7 @@ Require Import Coq.Arith.Arith.
 Require Import Omega.
 
 Require Import Tactics.Bool2Prop.
+Require Import Tactics.FrapTactics.
 
 (* This formalization of BST is slightly modified from 6.887's homework. *)
 
@@ -101,14 +102,13 @@ Ltac unfold_tree :=
     unfold delete in *; fold delete in *
   ).
 
-Ltac propositional := intuition idtac.
-
 (* Proofs.
    Our main results are:
-     1) The value is present in BST after insertion.
+     1) The value is present in BST after insertion. Other
+        values remain unchanged.
      2) The property of BST keeps after insertion.
-     3) The property of BST keeps after deletion.
-     4) The value is not present in BST after deletion.
+     3) The value is not present in BST after deletion.
+     4) The property of BST keeps after deletion.
 *)
 
 Lemma tree_cmp_n_insert_preserve :
@@ -118,7 +118,7 @@ Proof.
   intros op t.
   induction t; intros; unfold_tree.
   - auto.
-  - propositional.
+  - intuition.
     destruct (n0 ?= n) eqn:H2; b2p; unfold_tree; auto.
 Qed.
 
@@ -132,14 +132,24 @@ Corollary tree_gt_n_insert_preserve :
     tree_gt_n t n -> n < n0 -> tree_gt_n (insert t n0) n.
 Proof. intros. apply (tree_cmp_n_insert_preserve gt t n0 n); auto. Qed.
 
-Theorem member_after_insert :
+Theorem member_after_eq_insert :
   forall (t : tree) (n : nat), BST t -> member (insert t n) n = true.
 Proof.
   intros. induction t.
   - simpl.
     rewrite Nat.compare_refl. auto.
-  - simpl. unfold_tree. propositional.
+  - simpl. unfold_tree. intuition.
     destruct (n ?= n0) eqn:H5; simpl; rewrite H5; auto.
+Qed.
+
+Theorem unchanged_member_after_neq_insert :
+  forall (t : tree) (n m : nat), BST t -> n <> m -> member (insert t n) m = member t m.
+Proof.
+  intros. induction t.
+  - simpl. destruct (m ?= n) eqn:H1; b2p; try omega; auto.
+  - unfold_tree. destruct (n ?= n0) eqn:H1; b2p; intuition; simpl.
+    destruct (m ?= n0) eqn:H7; b2p; auto.
+    destruct (m ?= n0) eqn:H7; b2p; auto.
 Qed.
 
 Theorem insert_correct :
@@ -150,9 +160,9 @@ Proof.
   - simpl. auto.
   - destruct (n0 ?= n) eqn:H1; b2p; unfold_tree.
     + auto.
-    + propositional; auto.
+    + intuition; auto.
       apply tree_lt_n_insert_preserve; auto.
-    + propositional; auto.
+    + intuition; auto.
       apply tree_gt_n_insert_preserve; auto.
 Qed.
 
@@ -162,7 +172,7 @@ Lemma tree_cmp_trans :
   tree_cmp_n op t n -> op n n0 -> tree_cmp_n op t n0.
 Proof.
   intros op t.
-  induction t; intros; unfold_tree; auto; try propositional; eauto.
+  induction t; intros; unfold_tree; auto; try intuition; eauto.
 Qed.
 
 Corollary tree_lt_trans :
@@ -183,8 +193,8 @@ Proof.
   induction t; intros; unfold_tree.
   - inversion H0.
   - destruct t1.
-    + inversion H0. subst. propositional.
-    + apply IHt1; propositional.
+    + inversion H0. subst. intuition.
+    + apply IHt1; intuition.
 Qed.
 
 Corollary leftmost_lt_n :
@@ -208,10 +218,10 @@ Proof.
   - destruct t1.
     + inversion H0; clear H0. rewrite Nat.compare_refl. auto.
     + assert (n0 < n).
-      { eapply leftmost_lt_n; eauto. propositional. }
+      { eapply leftmost_lt_n; eauto. intuition. }
       rewrite nat_compare_lt in H1. rewrite H1.
       assert (delete_leftmost (Node n1 t1_1 t1_2) = delete (Node n1 t1_1 t1_2) n0).
-      { apply IHt1. propositional. auto. }
+      { apply IHt1. intuition. auto. }
       rewrite H2. auto.
 Qed.
 
@@ -223,15 +233,15 @@ Proof.
   induction t; intros; unfold_tree.
   - auto.
   - destruct (n0 ?= n) eqn:H1; b2p.
-    + destruct t1; propositional.
+    + destruct t1; intuition.
       remember (Node n0 t1_1 t1_2) as t1. clear Heqt1.
       destruct (leftmost t2) eqn:H7.
       * assert (op n2 n1). { apply (leftmost_cmp_n op t2 n1 n2); auto. }
         rewrite (delete_leftmost_is_delete t2 n2); auto.
-        unfold_tree. propositional. auto.
+        unfold_tree. intuition.
       * auto.
-    + unfold_tree. propositional. auto.
-    + unfold_tree. propositional. auto.
+    + unfold_tree. intuition.
+    + unfold_tree. intuition.
 Qed.
 
 Corollary tree_lt_n_delete_preserve :
@@ -252,11 +262,11 @@ Proof.
   induction t; intros; unfold_tree.
   - auto.
   - destruct t1.
-    + inversion H0. subst. propositional.
+    + inversion H0. subst. intuition.
     + remember (Node n2 t1_1 t1_2) as t1. clear Heqt1.
       unfold_tree.
-      assert (n1 < n). { propositional. eapply leftmost_lt_n; eauto. }
-      propositional.
+      assert (n1 < n). { intuition. eapply leftmost_lt_n; eauto. }
+      intuition.
       * eapply IHt1; eauto.
       * eapply tree_gt_trans; eauto.
 Qed.
@@ -268,7 +278,7 @@ Proof.
   intros t.
   induction t; intros; unfold_tree.
   - inversion H0.
-  - simpl in *. propositional. assert (n0 > n). { omega. }
+  - simpl in *. intuition. assert (n0 > n). { omega. }
     rewrite nat_compare_gt in H2. rewrite H2 in H0. eapply IHt2; eauto.
 Qed.
 
@@ -279,7 +289,7 @@ Proof.
   intros t.
   induction t; intros; unfold_tree.
   - inversion H0.
-  - simpl in *. propositional. assert (n0 < n). { omega. }
+  - simpl in *. intuition. assert (n0 < n). { omega. }
     rewrite nat_compare_lt in H2. rewrite H2 in H0. eapply IHt1; eauto.
 Qed.
 
@@ -293,9 +303,9 @@ Proof.
   - simpl. auto.
   - destruct (n0 ?= n) eqn:H1; b2p; unfold_tree.
     + destruct t1.
-      * propositional. apply tree_gt_implies_not_member in H4; eauto.
+      * intuition. apply tree_gt_implies_not_member in H4; eauto.
       * { remember (Node n0 t1_1 t1_2) as t1. clear Heqt1.
-          propositional.
+          intuition.
           destruct (leftmost t2) eqn:H6.
           - assert (n < n1). { eapply leftmost_gt_n; eauto. }
             simpl in H0. rewrite nat_compare_lt in H7. rewrite H7 in H0.
@@ -304,11 +314,17 @@ Proof.
         }
     + simpl.
       rewrite nat_compare_lt in H1. rewrite H1.
-      apply IHt1. propositional.
+      apply IHt1. intuition.
     + simpl. assert (n0 > n). { omega. }
       rewrite nat_compare_gt in H0. rewrite H0.
-      apply IHt2. propositional.
+      apply IHt2. intuition.
 Qed.
+
+Theorem unchanged_member_after_delete :
+  forall (t : tree) (n m : nat), BST t -> n <> m -> member (delete t m) n = member t n.
+Proof.
+(* TODO(fb): Fill it up. *)
+Admitted.
 
 Theorem delete_correct :
   forall (t : tree) (n : nat), BST t -> BST (delete t n).
@@ -318,16 +334,78 @@ Proof.
   - simpl. auto.
   - destruct (n0 ?= n) eqn:H1; b2p; unfold_tree.
     + destruct t1.
-      * propositional.
+      * intuition.
       * { destruct (leftmost t2) eqn:H1.
           - remember (Node n0 t1_1 t1_2) as t1. clear Heqt1.
-            unfold_tree. propositional.
+            unfold_tree. intuition.
             + rewrite (delete_leftmost_is_delete t2 n1); auto.
             + assert (n1 > n). { eapply leftmost_gt_n. apply H4. apply H1. }
               eapply tree_lt_trans. eauto. omega.
             + eapply delete_leftmost_gt_n; eauto.
-          - propositional.
+          - intuition.
         }
-    + propositional. auto. apply tree_lt_n_delete_preserve; auto.
-    + propositional. auto. apply tree_gt_n_delete_preserve; auto.
+    + intuition. auto. apply tree_lt_n_delete_preserve; auto.
+    + intuition. auto. apply tree_gt_n_delete_preserve; auto.
 Qed.
+
+
+(** Finally, we use abstract data types to summarize up the specification of
+    [member] and [insert]. Here we use refinement type to to maintain the
+    invariant that [member] and [insert] keep the property of BST. *)
+Module Type AbsSet.
+  Parameter set : Type.
+  Definition key := nat.
+
+  Parameter empty : set.
+  Parameter member : set -> key -> bool.
+  Parameter insert : set -> key -> set.
+
+  Axiom member_empty :
+    forall k, member empty k = false.
+
+  Axiom member_after_eq_insert :
+    forall t n, member (insert t n) n = true.
+
+  Axiom unchanged_member_after_neq_insert :
+    forall t n m, n <> m -> member (insert t n) m = member t m.
+End AbsSet.
+
+Module BST <: AbsSet.
+  Definition set := { t | BST t }.  (* refinement type *)
+  Definition key := nat.
+
+  Definition empty : { t | BST t }.
+    refine (exist BST Leaf _).
+    constructor.
+  Defined.
+
+  Definition member (t : set) (n : key) : bool :=
+    member (proj1_sig t) n.
+
+  Definition insert (t : set) (n : key) : set :=
+    exist BST (insert (proj1_sig t) n) (insert_correct (proj1_sig t) n (proj2_sig t)).
+
+  Theorem member_empty :
+    forall k, member empty k = false.
+  Proof.
+    intros. compute. auto.
+  Qed.
+
+  Theorem member_after_eq_insert :
+    forall t n, member (insert t n) n = true.
+  Proof.
+    intros.
+    unfold member, insert.
+    unfold set in t; destruct t; simpl.
+    apply member_after_eq_insert. auto.
+  Qed.
+
+  Theorem unchanged_member_after_neq_insert :
+    forall t n m, n <> m -> member (insert t n) m = member t m.
+  Proof.
+    intros.
+    unfold member, insert.
+    unfold set in t; destruct t; simpl.
+    apply unchanged_member_after_neq_insert; auto.
+  Qed.
+End BST.

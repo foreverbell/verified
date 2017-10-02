@@ -12,16 +12,17 @@ Module List <: Monad.
   Definition bind (A B : Type) (n : list A) (f : A -> list B) :=
     concat (map f n).
 
+  Infix ">>=" := bind (at level 50, left associativity).
   Ltac nake := unfold m; unfold ret; unfold bind.
 
   Theorem monad_law1 : forall (A B : Type) (x : A) (f : A -> m B),
-    bind (ret x) f = f x.
+    ret x >>= f = f x.
   Proof.
     nake. crush.
   Qed.
 
   Theorem monad_law2 : forall (A : Type) (x : m A),
-    bind x (@ret A) = x.
+    x >>= @ret A = x.
   Proof.
     nake. crush.
     induction x; crush.
@@ -29,7 +30,7 @@ Module List <: Monad.
 
   Theorem monad_law3 :
     forall (A B C : Type) (n : m A) (f : A -> m B) (g : B -> m C),
-      bind (bind n f) g = bind n (fun x => bind (f x) g).
+      (n >>= f) >>= g = n >>= (fun x => f x >>= g).
   Proof.
     nake. crush.
     induction n; crush.
@@ -39,18 +40,21 @@ Module List <: Monad.
   Qed.
 End List.
 
-Import List.
+Module ListExt := MonadExt List.
 
-Theorem map_using_monad :
+Import List.
+Import ListExt.
+
+Theorem map_eq_fmap :
   forall (A B : Type) (xs : list A) (f : A -> B),
-    map f xs = bind xs (fun x => ret (f x)).
+    map f xs = fmap f xs.
 Proof.
   induction xs; crush.
 Qed.
 
-Theorem join_using_monad :
+Theorem concat_eq_join :
   forall (A : Type) (xs : list (list A)),
-    concat xs = bind xs (fun x => x).
+    concat xs = join xs.
 Proof.
   induction xs; crush.
 Qed.

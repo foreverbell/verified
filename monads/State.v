@@ -19,16 +19,17 @@ Module Type State <: Monad.
     fun (s : S) =>
       let (r, s') := n s in f r s'.
 
+  Infix ">>=" := bind (at level 50, left associativity).
   Ltac nake := unfold m; unfold ret; unfold bind.
 
   Theorem monad_law1 : forall (A B : Type) (x : A) (f : A -> m B),
-    bind (ret x) f = f x.
+    ret x >>= f = f x.
   Proof.
     nake. crush.
   Qed.
 
   Theorem monad_law2 : forall (A : Type) (x : m A),
-    bind x (@ret A) = x.
+    x >>= @ret A = x.
   Proof.
     nake. intros.
     apply functional_extensionality; intros.
@@ -37,7 +38,7 @@ Module Type State <: Monad.
 
   Theorem monad_law3 :
     forall (A B C : Type) (n : m A) (f : A -> m B) (g : B -> m C),
-      bind (bind n f) g = bind n (fun x => bind (f x) g).
+      (n >>= f) >>= g = n >>= (fun x => f x >>= g).
   Proof.
     nake. intros.
     apply functional_extensionality; intros.

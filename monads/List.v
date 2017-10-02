@@ -15,20 +15,20 @@ Module List <: Monad.
   Infix ">>=" := bind (at level 50, left associativity).
   Ltac nake := unfold m; unfold ret; unfold bind.
 
-  Theorem monad_law1 : forall (A B : Type) (x : A) (f : A -> m B),
+  Theorem law1 : forall (A B : Type) (x : A) (f : A -> m B),
     ret x >>= f = f x.
   Proof.
     nake. crush.
   Qed.
 
-  Theorem monad_law2 : forall (A : Type) (x : m A),
+  Theorem law2 : forall (A : Type) (x : m A),
     x >>= @ret A = x.
   Proof.
     nake. crush.
     induction x; crush.
   Qed.
 
-  Theorem monad_law3 :
+  Theorem law3 :
     forall (A B C : Type) (n : m A) (f : A -> m B) (g : B -> m C),
       (n >>= f) >>= g = n >>= (fun x => f x >>= g).
   Proof.

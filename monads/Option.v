@@ -7,8 +7,8 @@ Set Implicit Arguments.
 Module Option <: Monad.
   Definition m := option.
 
-  Definition ret (a : Type) := @Some a.
-  Definition bind (a b : Type) (n : option a) (f : a -> option b) :=
+  Definition ret (A : Type) := @Some A.
+  Definition bind (A B : Type) (n : option A) (f : A -> option B) :=
     match n with
     | Some x => f x
     | None => None
@@ -16,20 +16,21 @@ Module Option <: Monad.
 
   Ltac nake := unfold m; unfold ret; unfold bind.
 
-  Theorem monad_law1 : forall a b (x : a) (f : a -> m b),
+  Theorem monad_law1 : forall (A B : Type) (x : A) (f : A -> m B),
     bind (ret x) f = f x.
   Proof.
     nake. crush.
   Qed.
 
-  Theorem monad_law2 : forall a (x : m a),
-    bind x (@ret a) = x.
+  Theorem monad_law2 : forall (A : Type) (x : m A),
+    bind x (@ret A) = x.
   Proof.
     nake. intros; destruct x; crush.
   Qed.
 
-  Theorem monad_law3 : forall a b c (n : m a) (f : a -> m b) (g : b -> m c),
-    bind (bind n f) g = bind n (fun x => bind (f x) g).
+  Theorem monad_law3 :
+    forall (A B C : Type) (n : m A) (f : A -> m B) (g : B -> m C),
+      bind (bind n f) g = bind n (fun x => bind (f x) g).
   Proof.
     nake.
     intros; destruct n; auto.

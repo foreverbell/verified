@@ -29,6 +29,8 @@ Module Type Monad.
       (n >>= f) >>= g = n >>= (fun x => f x >>= g).
 End Monad.
 
+Local Open Scope program_scope.
+
 (** Functor of Monad with some extensions. *)
 Module MonadExt (M : Monad).
   Import M.
@@ -36,7 +38,7 @@ Module MonadExt (M : Monad).
   Definition id (A : Type) := fun (x : A) => x.
 
   Definition fmap (A B : Type) (f : A -> B) (n : m A) : m B :=
-    n >>= compose (@ret B) f.
+    n >>= @ret B ∘ f.
 
   Definition join (A : Type) (n : m (m A)) : m A :=
     n >>= @id (m A).
@@ -63,12 +65,53 @@ Module MonadExt (M : Monad).
 
   Theorem fmap_associativity :
     forall (A B C : Type) (f : A -> B) (g : B -> C),
-      fmap (compose g f) = compose (fmap g) (fmap f).
+      fmap (g ∘ f) = fmap g ∘ fmap f.
   Proof.
     unfold fmap, compose; intros.
     apply functional_extensionality; intros.
     rewrite law3; f_equal.
     apply functional_extensionality; intros.
     rewrite law1. auto.
+  Qed.
+
+  (** https://en.wikipedia.org/wiki/Monad_(functional_programming)#fmap_and_join *)
+  Theorem return_property :
+    forall (A B : Type) (f : A -> B) (x : A),
+      ret (f x) = fmap f (ret x).
+  Proof.
+    unfold fmap, compose; intros.
+    rewrite law1. auto.
+  Qed.
+
+  Theorem join_property1 :
+    forall (A : Type) (x : m (m (m A))),
+      join (fmap (@join A) x) = join (join x).
+  Proof.
+    intros. rewrite <- fmap_compose_join_eq_bind.
+    unfold join, id. rewrite law3. auto.
+  Qed.
+
+  Theorem join_property2 :
+    forall (A : Type) (x : m A),
+      join (fmap (@ret A) x) = x.
+  Proof.
+    intros. rewrite <- fmap_compose_join_eq_bind.
+    rewrite law2. auto.
+  Qed.
+
+  Theorem join_property3 :
+    forall (A : Type) (x : m A),
+      join (ret x) = x.
+  Proof.
+    intros. unfold join.
+    rewrite law1. auto.
+  Qed.
+
+  Theorem join_property4 :
+    forall (A B : Type) (f : A -> B) (x : m (m A)),
+      join (fmap (fmap f) x) = fmap f (join x).
+  Proof.
+    intros. rewrite <- fmap_compose_join_eq_bind.
+    unfold fmap, join. rewrite law3. auto.
   Qed.
 End MonadExt.

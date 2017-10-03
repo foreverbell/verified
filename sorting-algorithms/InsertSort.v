@@ -34,7 +34,7 @@ Proof.
   simpl; reflexivity.
 Qed.
 
-(** Insert keeps a sorted list still sorted. *)
+(** [insert] keeps a sorted list still sorted. *)
 Lemma insert_keeps_sorted :
   forall l x, Sorted l -> Sorted (insert x l).
 Proof.
@@ -46,7 +46,7 @@ Proof.
   destruct (x <=? n) eqn:H3; b2p; crush.
 Qed.
 
-(** Insert keeps a permutation still a permutation. *)
+(** [insert] keeps a permutation still a permutation. *)
 Lemma insert_keeps_permutation :
   forall l l' x, Permutation l l' -> Permutation (x :: l) (insert x l').
 Proof.

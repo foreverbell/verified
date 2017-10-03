@@ -100,8 +100,8 @@ Ltac invert_new t :=
   let H := fresh in assert (H: exists l r v, new t = Node l r v) by apply new_is_node;
   destruct H; destruct H; destruct H; rewrite H.
 
-(* Surprisingly, Coq's standard library doesn't have these useful two lemmas,
-   so they bother ourselves to prove these two lemmas ;o *)
+(* Surprisingly, Coq's standard library doesn't have these two useful lemmas,
+   so they bother ourselves to prove these twos ;o *)
 Lemma bool_decidable :
   forall (a b : bool), Decidable.decidable (a = b).
 Proof.

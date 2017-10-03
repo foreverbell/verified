@@ -9,8 +9,9 @@ Require Import Tactics.Bool2Prop.
 Require Import Tactics.CpdtTactics.
 
 (** Our formalization of QuickSort relies on the inductive type family "Forall"
-    and "Permutation", before starting our proof, admit a missing lemma in Coq
-    standard library about the relation between "Permutation" and "Forall". *)
+    and "Permutation". Before starting our proof, let us admit a missing lemma
+    in Coq standard library about the relation between "Permutation" and
+    "Forall". *)
 Lemma Forall_Permutation :
   forall A (l l' : list A) P, Forall P l -> Permutation l l' -> Forall P l'.
 Proof.
@@ -21,7 +22,7 @@ Proof.
   apply H. apply H0.
 Qed.
 
-(** All elements in [l] is less or greater than [x]. *)
+(** All elements in [l] are less or greater than [x]. *)
 Definition AllLe (x : nat) (l : list nat) : Prop := Forall (fun y => x <= y) l.
 Definition AllGe (x : nat) (l : list nat) : Prop := Forall (fun y => x >= y) l.
 
@@ -54,14 +55,14 @@ Proof.
 Qed.
 
 (** Different from other sorting algorithms like insert sort, quick sort is not
-    easy to define in Coq. For a recursive function definition, Coq needs to
+    easy to be defined in Coq. For a recursive function definition, Coq needs to
     check if this function can teminate for any input. However, Coq's criteria
     for recursion termination is too conservative, recursive calls are only allowed
-    on synatistics subterms of the original primary argument.
+    on syntactic subterms of the original primary argument.
 
-    Quicksort finds a pivot, and partition the list into two sublists, which contain
+    Quicksort finds a pivot, and partitions the list into two sublists, which contain
     all elements except the pivot that are smaller / greater than the pivot. The two
-    sublists are not synatistics subterm of the input list, so the "stupid" Gallina
+    sublists are not syntactic subterm of the input list, so the "stupid" Gallina
     will complain that recursive call to quicksort has illformed principal argument.
 
     But clearly we know that the length of two sublists is strictly decreasing, Coq's
@@ -86,7 +87,7 @@ Proof.
   unfold lengthOrder; intro; eapply lengthOrder_wf'; eauto.
 Defined.
 
-(** Divide the list [l] with respect to the ordering to [x] into two lists. *)
+(** Divide the list [l] with respect to the order between [x] into two lists. *)
 Fixpoint divide (x : nat) (l : list nat) : (list nat) * (list nat) :=
   match l with
   | nil => (nil, nil)
@@ -163,8 +164,8 @@ Extraction pivot.
 Extraction quicksort.
 
 (** Rather than "unfold quicksort" to expand [quicksort], we should turn to use
-    this theorem to avoid annoying [Fix] appear as barrier to prove the SortSpec
-    of quicksort. *)
+    this theorem to avoid the annoying [Fix] appear as barrier to prove the
+    SortSpec of quicksort. *)
 Theorem quicksort_eq : forall l,
   quicksort l =
     match ge_dec (length l) 1 with

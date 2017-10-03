@@ -11,9 +11,9 @@ Require Import Tactics.CpdtTactics.
     and generic recursion. *)
 
 (** The original idea is presented by Andrew Appel in OPLSS14, but his
-    implementation was a little hacky, the [selsort_aux] function only
+    implementation was a little hacky, since the [selsort_aux] function only
     takes two parameters [l] and [n], but uses the assumption that
-    [length l] = [n]. So I enhance his implementation using dependent
+    [length l] = [n]. So I enhance his implementation by using dependent
     type and generic recursion, where we "encode" the proof of the
     equality in program. *)
 

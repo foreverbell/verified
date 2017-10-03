@@ -316,12 +316,12 @@ Proof.
   apply heap_1_maximum_by_height with (height := log2 i); auto.
 Qed.
 
-(* Now verifying heap_push and heap_pop is correct.
+(* Now verify heap_push and heap_pop is correct.
    We need some auxiliary lemmas of heap_upify and heap_downify.
 
    The main 3 results are:
-     1). Property of heap keeps after heap_push.
-     2). Property of heap keeps after heap_pop.
+     1). The property of heap keeps after heap_push.
+     2). The property of heap keeps after heap_pop.
      3). heap_pop extracts the maximum element of heap.
 *)
 

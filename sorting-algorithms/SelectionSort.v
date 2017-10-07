@@ -7,6 +7,8 @@ Require Import SortSpec.
 Require Import Tactics.Bool2Prop.
 Require Import Tactics.CpdtTactics.
 
+Module SelectSort <: Sorting.
+
 (** Formalizing and proving selection sort based on dependent type
     and generic recursion. *)
 
@@ -121,18 +123,18 @@ Proof.
   destruct x; simpl; repeat f_equal; auto.
 Qed.
 
-Notation "[ ]" := nil.
-Notation "[ x , .. , y ]" := (cons x .. (cons y nil) ..).
+Definition sort := selsort.
+
 Example selsort_pi :
-  selsort [3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5] = [1, 1, 2, 3, 3, 4, 5, 5, 5, 6, 9].
+  sort [3; 1; 4; 1; 5; 9; 2; 6; 5; 3; 5] = [1; 1; 2; 3; 3; 4; 5; 5; 5; 6; 9].
 Proof.
   simpl; reflexivity.
 Qed.
 
-Theorem selsort_ok :
-  SortSpec selsort.
+Theorem sort_algorithm : forall (l : list nat),
+  Sorted (sort l) /\ Permutation l (sort l).
 Proof.
-  unfold selsort, SortSpec.
+  unfold sort.
   intros.
   apply (well_founded_ind lengthOrder_wf
     (fun l => Sorted (selsort l) /\ Permutation l (selsort l))
@@ -147,3 +149,5 @@ Proof.
   destruct (selsort l0); auto.
   constructor; inversion H1; crush.
 Qed.
+
+End SelectSort.

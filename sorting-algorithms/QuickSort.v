@@ -8,6 +8,8 @@ Require Import SortSpec.
 Require Import Tactics.Bool2Prop.
 Require Import Tactics.CpdtTactics.
 
+Module QuickSort <: Sorting.
+
 (** Our formalization of QuickSort relies on the inductive type family "Forall"
     and "Permutation". Before starting our proof, let us admit a missing lemma
     in Coq standard library about the relation between "Permutation" and
@@ -178,19 +180,19 @@ Proof.
   destruct (ge_dec (length x) 1); simpl; repeat f_equal; auto.
 Qed.
 
-Notation "[ ]" := nil.
-Notation "[ x , .. , y ]" := (cons x .. (cons y nil) ..).
+Definition sort := quicksort.
+
 Example quicksort_pi :
-  quicksort [3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5] = [1, 1, 2, 3, 3, 4, 5, 5, 5, 6, 9].
+  quicksort [3; 1; 4; 1; 5; 9; 2; 6; 5; 3; 5] = [1; 1; 2; 3; 3; 4; 5; 5; 5; 6; 9].
 Proof.
   repeat (rewrite quicksort_eq; simpl).
   reflexivity.
 Qed.
 
-Theorem quicksort_ok :
-  SortSpec quicksort.
+Theorem sort_algorithm : forall (l : list nat),
+  Sorted (sort l) /\ Permutation l (sort l).
 Proof.
-  unfold SortSpec.
+  unfold sort.
   intros.
   apply (well_founded_ind lengthOrder_wf
     (fun l => Sorted (quicksort l) /\ Permutation l (quicksort l))
@@ -206,3 +208,5 @@ Proof.
     + apply Permutation_add_inside; crush.
   - apply not_ge in n. apply llt1 in n. subst; crush.
 Qed.
+
+End QuickSort.

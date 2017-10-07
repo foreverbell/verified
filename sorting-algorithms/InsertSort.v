@@ -7,6 +7,8 @@ Require Import SortSpec.
 Require Import Tactics.Bool2Prop.
 Require Import Tactics.CpdtTactics.
 
+Module InsertSort <: Sorting.
+
 (** Body of insert sort. Sort the rest list, and insert the head
     element into the sorted rest list. *)
 Fixpoint insert (x : nat) (l : list nat) : list nat :=
@@ -26,10 +28,10 @@ Fixpoint insertsort (l : list nat) : list nat :=
 Extraction insert.
 Extraction insertsort.
 
-Notation "[ ]" := nil.
-Notation "[ x , .. , y ]" := (cons x .. (cons y nil) ..).
+Definition sort := insertsort.
+
 Example insertsort_pi :
-  insertsort [3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5] = [1, 1, 2, 3, 3, 4, 5, 5, 5, 6, 9].
+  sort [3; 1; 4; 1; 5; 9; 2; 6; 5; 3; 5] = [1; 1; 2; 3; 3; 4; 5; 5; 5; 6; 9].
 Proof.
   simpl; reflexivity.
 Qed.
@@ -59,11 +61,13 @@ Proof.
   apply perm_swap.
 Qed.
 
-Theorem insertsort_ok :
-  SortSpec insertsort.
+Theorem sort_algorithm : forall (l : list nat),
+  Sorted (sort l) /\ Permutation l (sort l).
 Proof.
-  unfold SortSpec.
+  unfold sort.
   intros; induction l; split; crush.
   - apply insert_keeps_sorted; auto.
   - apply insert_keeps_permutation; auto.
 Qed.
+
+End InsertSort.

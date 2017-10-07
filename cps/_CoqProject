@@ -1,3 +1,3 @@
--R . Fact
+-R . Cps
 -R ../tactics Tactics
-Fact.v
+Cps.v

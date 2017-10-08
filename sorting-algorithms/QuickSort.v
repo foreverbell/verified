@@ -7,6 +7,7 @@ Require Import SortSpec.
 
 Require Import Tactics.Bool2Prop.
 Require Import Tactics.CpdtTactics.
+Require Import Tactics.PermutationSolver.
 
 Module QuickSort <: Sorting.
 
@@ -113,8 +114,8 @@ Lemma divide_spec :
 Proof.
   intros x l; induction l; crush;
   destruct (divide x l); destruct (a <=? x) eqn:H1; b2p; inversion H; subst;
-  pose proof (IHl l0 l3); crush;
-  apply Permutation_sym; apply Permutation_cons_app; crush.
+  pose proof (IHl l0 l3); crush.
+  permutation_solver.
 Qed.
 
 Corollary divide_length :

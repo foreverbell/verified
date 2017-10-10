@@ -7,10 +7,10 @@ Module Type Monad.
   Parameter m : Type -> Type.
 
   (** "return" *)
-  Parameter ret : forall (A : Type), A -> m A.
+  Parameter ret : forall {A : Type}, A -> m A.
 
   (** ">>=" *)
-  Parameter bind : forall (A B : Type), m A -> (A -> m B) -> m B.
+  Parameter bind : forall {A B : Type}, m A -> (A -> m B) -> m B.
 
   Infix ">>=" := bind (at level 50, left associativity).
 
@@ -22,7 +22,7 @@ Module Type Monad.
     ret x >>= f = f x.
 
   Axiom law2 : forall (A : Type) (x : m A),
-    x >>= @ret A = x.
+    x >>= ret = x.
 
   Axiom law3 :
     forall (A B C : Type) (n : m A) (f : A -> m B) (g : B -> m C),
@@ -35,13 +35,11 @@ Local Open Scope program_scope.
 Module MonadExt (M : Monad).
   Import M.
 
-  Definition id (A : Type) := fun (x : A) => x.
+  Definition fmap {A B : Type} (f : A -> B) (n : m A) : m B :=
+    n >>= ret ∘ f.
 
-  Definition fmap (A B : Type) (f : A -> B) (n : m A) : m B :=
-    n >>= @ret B ∘ f.
-
-  Definition join (A : Type) (n : m (m A)) : m A :=
-    n >>= @id (m A).
+  Definition join {A : Type} (n : m (m A)) : m A :=
+    n >>= id.
 
   Theorem fmap_compose_join_eq_bind :
     forall (A B : Type) (n : m A) (f : A -> m B),
@@ -58,7 +56,7 @@ Module MonadExt (M : Monad).
   Theorem fmap_id :
     forall (A : Type), fmap (@id A) = @id (m A).
   Proof.
-    unfold fmap; intros.
+    unfold fmap, compose; intros.
     apply functional_extensionality; intros; unfold id.
     rewrite law2. auto.
   Qed.
@@ -85,7 +83,7 @@ Module MonadExt (M : Monad).
 
   Theorem join_property1 :
     forall (A : Type) (x : m (m (m A))),
-      join (fmap (@join A) x) = join (join x).
+      join (fmap join x) = join (join x).
   Proof.
     intros. rewrite <- fmap_compose_join_eq_bind.
     unfold join, id. rewrite law3. auto.
@@ -93,7 +91,7 @@ Module MonadExt (M : Monad).
 
   Theorem join_property2 :
     forall (A : Type) (x : m A),
-      join (fmap (@ret A) x) = x.
+      join (fmap ret x) = x.
   Proof.
     intros. rewrite <- fmap_compose_join_eq_bind.
     rewrite law2. auto.

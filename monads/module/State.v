@@ -11,10 +11,10 @@ Module Type State <: Monad.
 
   Definition m (A : Type) := S -> prod A S.
 
-  Definition ret (A : Type) (a : A) :=
+  Definition ret {A : Type} (a : A) :=
     fun (s : S) =>
       (a, s).
-  Definition bind (A B : Type) (n : S -> prod A S)
+  Definition bind {A B : Type} (n : S -> prod A S)
                   (f : A -> (S -> prod B S)) :=
     fun (s : S) =>
       let (r, s') := n s in f r s'.
@@ -29,7 +29,7 @@ Module Type State <: Monad.
   Qed.
 
   Theorem law2 : forall (A : Type) (x : m A),
-    x >>= @ret A = x.
+    x >>= ret = x.
   Proof.
     nake. intros.
     apply functional_extensionality; intros.

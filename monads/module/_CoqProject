@@ -1,5 +1,5 @@
 -R . Monads
--R ../tactics Tactics
+-R ../../tactics Tactics
 List.v
 Monad.v
 Option.v

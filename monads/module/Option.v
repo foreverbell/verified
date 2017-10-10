@@ -7,8 +7,8 @@ Set Implicit Arguments.
 Module Option <: Monad.
   Definition m := option.
 
-  Definition ret (A : Type) := @Some A.
-  Definition bind (A B : Type) (n : option A) (f : A -> option B) :=
+  Definition ret {A : Type} := @Some A.
+  Definition bind {A B : Type} (n : option A) (f : A -> option B) :=
     match n with
     | Some x => f x
     | None => None
@@ -24,7 +24,7 @@ Module Option <: Monad.
   Qed.
 
   Theorem law2 : forall (A : Type) (x : m A),
-    x >>= @ret A = x.
+    x >>= ret = x.
   Proof.
     nake. intros; destruct x; crush.
   Qed.

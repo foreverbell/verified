@@ -8,8 +8,8 @@ Set Implicit Arguments.
 Module List <: Monad.
   Definition m := list.
 
-  Definition ret (A : Type) (x : A) := cons x nil.
-  Definition bind (A B : Type) (n : list A) (f : A -> list B) :=
+  Definition ret {A : Type} (x : A) := cons x nil.
+  Definition bind {A B : Type} (n : list A) (f : A -> list B) :=
     concat (map f n).
 
   Infix ">>=" := bind (at level 50, left associativity).
@@ -22,7 +22,7 @@ Module List <: Monad.
   Qed.
 
   Theorem law2 : forall (A : Type) (x : m A),
-    x >>= @ret A = x.
+    x >>= ret = x.
   Proof.
     nake. crush.
     induction x; crush.

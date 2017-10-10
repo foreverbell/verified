@@ -1,0 +1,5 @@
+-R . FastPower
+-R ../tactics Tactics
+FastPower.v
+Matrix2.v
+Monoid.v

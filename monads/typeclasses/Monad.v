@@ -7,7 +7,7 @@ Local Open Scope program_scope.
 
 Class Monad (m : Type -> Type)
             (ret : forall {A : Type}, A -> m A)
-            (bind : forall {A B : Type}, m A -> (A -> m B) -> m B) := {
+            (bind : forall {A B : Type}, m A -> (A -> m B) -> m B) : Prop := {
   (** Three laws that a monad instance must obey.
     Law 1:  return x >>= f ~ f x
     Law 2:  m >>= return ~ m

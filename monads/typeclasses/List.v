@@ -19,12 +19,12 @@ Defined.
 Instance list_monad : Monad list ret bind.
 Proof.
   split; unfold ret, bind.
-  - (* law 1 *)
+  - (* left_id *)
     intros. crush.
-  - (* law 2 *)
+  - (* right_id *)
     intros.
     induction x; crush.
-  - (* law 3 *)
+  - (* bind_assoc *)
     intros.
     induction n; crush.
     rewrite <- IHn.

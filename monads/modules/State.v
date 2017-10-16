@@ -22,13 +22,13 @@ Module Type State <: Monad.
   Infix ">>=" := bind (at level 50, left associativity).
   Ltac nake := unfold m; unfold ret; unfold bind.
 
-  Theorem law1 : forall (A B : Type) (x : A) (f : A -> m B),
+  Theorem left_id : forall (A B : Type) (x : A) (f : A -> m B),
     ret x >>= f = f x.
   Proof.
     nake. crush.
   Qed.
 
-  Theorem law2 : forall (A : Type) (x : m A),
+  Theorem right_id : forall (A : Type) (x : m A),
     x >>= ret = x.
   Proof.
     nake. intros.
@@ -36,7 +36,7 @@ Module Type State <: Monad.
     destruct (x x0); crush.
   Qed.
 
-  Theorem law3 :
+  Theorem bind_assoc :
     forall (A B C : Type) (n : m A) (f : A -> m B) (g : B -> m C),
       (n >>= f) >>= g = n >>= (fun x => f x >>= g).
   Proof.

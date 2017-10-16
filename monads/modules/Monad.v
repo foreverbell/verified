@@ -18,13 +18,13 @@ Module Type Monad.
     Law 1:  return x >>= f ~ f x
     Law 2:  m >>= return ~ m
     Law 3:  (m >>= f) >>= g ~ m >>= (fun x -> f x >>= g) *)
-  Axiom law1 : forall (A B : Type) (x : A) (f : A -> m B),
+  Axiom left_id : forall (A B : Type) (x : A) (f : A -> m B),
     ret x >>= f = f x.
 
-  Axiom law2 : forall (A : Type) (x : m A),
+  Axiom right_id : forall (A : Type) (x : m A),
     x >>= ret = x.
 
-  Axiom law3 :
+  Axiom bind_assoc :
     forall (A B C : Type) (n : m A) (f : A -> m B) (g : B -> m C),
       (n >>= f) >>= g = n >>= (fun x => f x >>= g).
 End Monad.
@@ -46,9 +46,9 @@ Module MonadExt (M : Monad).
       n >>= f = join (fmap f n).
   Proof.
     unfold join, fmap; intros.
-    rewrite law3.
+    rewrite bind_assoc.
     f_equal; apply functional_extensionality; intros.
-    unfold compose; rewrite law1.
+    unfold compose; rewrite left_id.
     auto.
   Qed.
 
@@ -58,7 +58,7 @@ Module MonadExt (M : Monad).
   Proof.
     unfold fmap, compose; intros.
     apply functional_extensionality; intros; unfold id.
-    rewrite law2. auto.
+    rewrite right_id. auto.
   Qed.
 
   Theorem fmap_associativity :
@@ -67,9 +67,9 @@ Module MonadExt (M : Monad).
   Proof.
     unfold fmap, compose; intros.
     apply functional_extensionality; intros.
-    rewrite law3; f_equal.
+    rewrite bind_assoc; f_equal.
     apply functional_extensionality; intros.
-    rewrite law1. auto.
+    rewrite left_id. auto.
   Qed.
 
   (** https://en.wikipedia.org/wiki/Monad_(functional_programming)#fmap_and_join *)
@@ -78,7 +78,7 @@ Module MonadExt (M : Monad).
       ret (f x) = fmap f (ret x).
   Proof.
     unfold fmap, compose; intros.
-    rewrite law1. auto.
+    rewrite left_id. auto.
   Qed.
 
   Theorem join_property1 :
@@ -86,7 +86,7 @@ Module MonadExt (M : Monad).
       join (fmap join x) = join (join x).
   Proof.
     intros. rewrite <- fmap_compose_join_eq_bind.
-    unfold join, id. rewrite law3. auto.
+    unfold join, id. rewrite bind_assoc. auto.
   Qed.
 
   Theorem join_property2 :
@@ -94,7 +94,7 @@ Module MonadExt (M : Monad).
       join (fmap ret x) = x.
   Proof.
     intros. rewrite <- fmap_compose_join_eq_bind.
-    rewrite law2. auto.
+    rewrite right_id. auto.
   Qed.
 
   Theorem join_property3 :
@@ -102,7 +102,7 @@ Module MonadExt (M : Monad).
       join (ret x) = x.
   Proof.
     intros. unfold join.
-    rewrite law1. auto.
+    rewrite left_id. auto.
   Qed.
 
   Theorem join_property4 :
@@ -110,6 +110,6 @@ Module MonadExt (M : Monad).
       join (fmap (fmap f) x) = fmap f (join x).
   Proof.
     intros. rewrite <- fmap_compose_join_eq_bind.
-    unfold fmap, join. rewrite law3. auto.
+    unfold fmap, join. rewrite bind_assoc. auto.
   Qed.
 End MonadExt.

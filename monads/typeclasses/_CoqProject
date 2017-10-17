@@ -1,4 +1,5 @@
 -R . Monads
 -R ../../tactics Tactics
+Free.v
 List.v
 Monad.v

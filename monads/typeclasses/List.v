@@ -16,9 +16,12 @@ Proof.
   intros A B n f. exact (concat (map f n)).
 Defined.
 
-Instance list_monad : Monad list ret bind.
+Definition list_eq : forall T : Type, list T -> list T -> Prop :=
+  fun T x y => x = y.
+
+Instance list_monad : Monad list list_eq ret bind.
 Proof.
-  split; unfold ret, bind.
+  split; unfold ret, bind, list_eq.
   - (* left_id *)
     intros. crush.
   - (* right_id *)
@@ -30,10 +33,14 @@ Proof.
     rewrite <- IHn.
     rewrite map_app, concat_app.
     auto.
+  - (* equivalence *)
+    intros. constructor; crush.
+  - (* f_equivalence *)
+    intros. induction n; crush.
 Qed.
 
-Notation fmap := (fmap list ret bind).
-Notation join := (join list bind).
+Notation fmap := (@fmap list ret bind).
+Notation join := (@join list bind).
 
 Theorem map_eq_fmap :
   forall (A B : Type) (xs : list A) (f : A -> B),

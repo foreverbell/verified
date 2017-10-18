@@ -1,7 +1,4 @@
-Require Import Coq.Arith.Arith.
-Require Import Coq.Init.Nat.
-Require Import Coq.Lists.List.
-Require Import Permutation.
+Require Import Arith List Permutation Extraction.
 Require Import SortSpec.
 
 Require Import Tactics.Bool2Prop.
@@ -24,9 +21,6 @@ Fixpoint insertsort (l : list nat) : list nat :=
   | nil => nil
   | x :: l' => insert x (insertsort l')
   end.
-
-Extraction insert.
-Extraction insertsort.
 
 Definition sort := insertsort.
 
@@ -71,3 +65,6 @@ Proof.
 Qed.
 
 End InsertSort.
+
+Extraction InsertSort.insert.
+Extraction InsertSort.insertsort.

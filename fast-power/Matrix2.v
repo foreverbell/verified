@@ -3,7 +3,7 @@ Require Import Omega Ring InitialRing.
 Require Import Recdef.
 Require Import Tactics.CpdtTactics.
 
-Set Implicit Argument.
+Set Implicit Arguments.
 
 (** 2x2 matrix over a ring. *)
 Section Matrix2.
@@ -67,8 +67,8 @@ End Matrix2.
 (** 2x2 matrix over ring Z. *)
 Module ZMatrix2.
   Definition ZMatrix2 := Matrix2 Z.
-  Definition ZMatrix2_mul := Matrix2_mul Z Z.add Z.mul.
-  Definition ZUnit2 := Unit2 Z Z.zero Z.one.
+  Definition ZMatrix2_mul := Matrix2_mul Z.add Z.mul.
+  Definition ZUnit2 := Unit2 Z.zero Z.one.
 
   Theorem ZMatrix2_mul_assoc :
     forall (m n p : ZMatrix2),

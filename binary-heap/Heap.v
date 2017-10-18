@@ -1,8 +1,4 @@
-Require Import Coq.Arith.Arith.
-Require Import Coq.Init.Nat.
-Require Import Coq.Logic.FunctionalExtensionality.
-
-Require Import Omega.
+Require Import Arith Nat FunctionalExtensionality Omega.
 
 Require Import Tactics.Bool2Prop.
 

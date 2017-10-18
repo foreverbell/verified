@@ -4,7 +4,7 @@ Require Import Recdef.
 Require Import FastPower.Matrix2 FastPower.Monoid.
 Require Import Tactics.CpdtTactics.
 
-Set Implicit Argument.
+Set Implicit Arguments.
 
 (** https://en.wikipedia.org/wiki/Exponentiation_by_squaring,
     an improvement of the naive O(n) exponentiation algorithm with complexity
@@ -155,7 +155,7 @@ Module Fibonacci.
     c10 := 1; c11 := 0;
   |} % Z.
 
-  Compute @power ZMatrix2 ZMatrix2_mul (Unit2 Z 0 1) base 5.
+  Compute @power ZMatrix2 ZMatrix2_mul (Unit2 0 1) base 5.
 
   Function fibnoacci (n : nat) {measure (fun i => i) n} : Z :=
     match n with
@@ -168,20 +168,20 @@ Module Fibonacci.
     + intros; omega.
   Qed.
 
-  Notation power := (@power ZMatrix2 ZMatrix2_mul (Unit2 Z 0 1)).
-  Notation fast_power := (@fast_power ZMatrix2 ZMatrix2_mul (Unit2 Z 0 1)).
+  Notation power := (@power ZMatrix2 ZMatrix2_mul (Unit2 0 1)).
+  Notation fast_power := (@fast_power ZMatrix2 ZMatrix2_mul (Unit2 0 1)).
 
   Definition fast_fibnoacci (n : nat) : Z :=
     match n with
     | O => 0
-    | _ => c11 Z (fast_power base (S n))
+    | _ => c11 (fast_power base (S n))
     end.
 
   Theorem fast_fibnoacci_matrix :
     forall (n : nat) (m : ZMatrix2),
       m = fast_power base (S n) ->
-      c00 Z m = fibnoacci (2+n) /\ c01 Z m = fibnoacci (1+n) /\
-      c10 Z m = fibnoacci (1+n) /\ c11 Z m = fibnoacci n.
+      c00 m = fibnoacci (2+n) /\ c01 m = fibnoacci (1+n) /\
+      c10 m = fibnoacci (1+n) /\ c11 m = fibnoacci n.
   Proof.
     induction n; intros; rewrite fast_power_ok in H.
     + simpl in H.
@@ -206,7 +206,7 @@ Module Fibonacci.
     intros; destruct n.
     - simpl. rewrite fibnoacci_equation. auto.
     - pose proof
-        (fast_fibnoacci_matrix (S n) (fast_power base (S (S n))) eq_refl).
+        (@fast_fibnoacci_matrix (S n) (fast_power base (S (S n))) eq_refl).
       unfold fast_fibnoacci.
       tauto.
   Qed.

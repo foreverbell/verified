@@ -2,7 +2,7 @@ Require Import ZArith.
 Require Import FastPower.Matrix2.
 Require Import Tactics.CpdtTactics.
 
-Set Implicit Argument.
+Set Implicit Arguments.
 
 (** https://en.wikipedia.org/wiki/Monoid *)
 Section Monoid.

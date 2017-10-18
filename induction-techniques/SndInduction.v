@@ -74,7 +74,7 @@ Proof.
     ______________________________________(1/1)
     f n = S (S n) mod 2
 
-    we only got induction hypothesis on [S n] case, but we actually
+    we only get induction hypothesis on [S n] case, but we actually
     want the [n] case here. One benefit of second induction principle
     is we can use any smaller [k] than [n] to pose a proof rather than
     [n-1]. *)

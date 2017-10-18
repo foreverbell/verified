@@ -27,7 +27,7 @@ Class Monad (m : Type -> Type)
   equivalence :
     forall T, Equivalence (@mequiv T);
 
-  f_equivalence :
+  congruence :
     forall {A B : Type} n (f g : A -> m B),
       (forall x, mequiv (f x) (g x)) -> mequiv (bind n f) (bind n g);
 }.
@@ -52,7 +52,7 @@ Section MonadProperties.
     n >>= id.
 
   Ltac revealer := unfold join, fmap, compose, id; intros.
-  Ltac f_equal := apply f_equivalence; intros.
+  Ltac f_equal := apply congruence; intros.
 
   Theorem fmap_compose_join_eq_bind :
     forall (A B : Type) (n : m A) (f : A -> m B),

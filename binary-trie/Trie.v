@@ -1,6 +1,4 @@
-Require Import Coq.Lists.List.
-Require Import Coq.Classes.DecidableClass.
-Require Import Bool Coq.Init.Specif.
+Require Import List DecidableClass Bool Specif.
 
 Section Trie.
 

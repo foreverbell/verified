@@ -1,7 +1,4 @@
-Require Import Coq.Arith.Arith.
-Require Import Coq.Init.Nat.
-Require Import Coq.Lists.List.
-Require Import Permutation.
+Require Import Arith List Permutation.
 Require Import SortSpec.
 
 Require Import Tactics.Bool2Prop.

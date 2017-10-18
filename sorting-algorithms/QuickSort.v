@@ -1,8 +1,4 @@
-Require Import Coq.Arith.Arith.
-Require Import Coq.Init.Nat.
-Require Import Coq.Lists.List.
-Require Import Coq.Logic.FunctionalExtensionality.
-Require Import Permutation.
+Require Import Arith List FunctionalExtensionality Permutation Extraction.
 Require Import SortSpec.
 
 Require Import Tactics.Bool2Prop.
@@ -162,10 +158,6 @@ Definition quicksort : list nat -> list nat.
 	   pose proof (pivot_wf l n l0 l1 proof); crush.
 Defined.
 
-Extraction divide.
-Extraction pivot.
-Extraction quicksort.
-
 (** Rather than "unfold quicksort" to expand [quicksort], we should turn to use
     this theorem to avoid the annoying [Fix] appear as barrier to prove the
     SortSpec of quicksort. *)
@@ -211,3 +203,7 @@ Proof.
 Qed.
 
 End QuickSort.
+
+Extraction QuickSort.divide.
+Extraction QuickSort.pivot.
+Extraction QuickSort.quicksort.

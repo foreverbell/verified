@@ -1,5 +1,4 @@
-Require Import Coq.Arith.Arith.
-Require Import Omega.
+Require Import Arith Omega.
 
 Require Import Tactics.Bool2Prop.
 Require Import Tactics.FrapTactics.

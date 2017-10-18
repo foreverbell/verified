@@ -4,5 +4,6 @@
 *.aux
 
 Makefile.coq
+CoqMakefile.conf
 
 *.bak

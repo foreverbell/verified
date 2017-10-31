@@ -1,7 +1,7 @@
 Require Import Arith List FunctionalExtensionality Permutation Extraction.
 Require Import SortSpec.
 
-Require Import Tactics.Bool2Prop.
+Require Import Tactics.Tactics.
 Require Import Tactics.CpdtTactics.
 Require Import Tactics.PermutationSolver.
 
@@ -109,7 +109,7 @@ Lemma divide_spec :
     (l1, l2) = divide x l -> AllLe x l2 /\ AllGe x l1 /\ Permutation (l1 ++ l2) l.
 Proof.
   intros x l; induction l; crush;
-  destruct (divide x l); destruct (a <=? x) eqn:H1; b2p; inversion H; subst;
+  destruct (divide x l); bdestruct (a <=? x); inversion H; subst;
   pose proof (IHl l0 l3); crush.
   permutation_solver.
 Qed.

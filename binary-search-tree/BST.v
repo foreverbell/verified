@@ -1,6 +1,6 @@
 Require Import Arith Omega.
 
-Require Import Tactics.Bool2Prop.
+Require Import Tactics.Tactics.
 Require Import Tactics.FrapTactics.
 
 (* This formalization of BST is slightly modified from 6.887's homework. *)
@@ -118,7 +118,7 @@ Proof.
   induction t; intros; unfold_tree.
   - auto.
   - intuition.
-    destruct (n0 ?= n) eqn:H2; b2p; unfold_tree; auto.
+    bdestruct (n0 ?= n); unfold_tree; auto.
 Qed.
 
 Corollary tree_lt_n_insert_preserve :
@@ -145,10 +145,11 @@ Theorem unchanged_member_after_neq_insert :
   forall (t : tree) (n m : nat), BST t -> n <> m -> member (insert t n) m = member t m.
 Proof.
   intros. induction t.
-  - simpl. destruct (m ?= n) eqn:H1; b2p; try omega; auto.
-  - unfold_tree. destruct (n ?= n0) eqn:H1; b2p; intuition; simpl.
-    destruct (m ?= n0) eqn:H7; b2p; auto.
-    destruct (m ?= n0) eqn:H7; b2p; auto.
+  - simpl. bdestruct (m ?= n); try omega; auto.
+  - unfold_tree.
+    bdestruct (n ?= n0); intuition; simpl.
+    bdestruct (m ?= n0); auto.
+    bdestruct (m ?= n0); auto.
 Qed.
 
 Theorem insert_correct :
@@ -157,7 +158,7 @@ Proof.
   intros t.
   induction t; intros; unfold_tree.
   - simpl. auto.
-  - destruct (n0 ?= n) eqn:H1; b2p; unfold_tree.
+  - bdestruct (n0 ?= n); unfold_tree.
     + auto.
     + intuition; auto.
       apply tree_lt_n_insert_preserve; auto.
@@ -231,7 +232,7 @@ Proof.
   intros op t.
   induction t; intros; unfold_tree.
   - auto.
-  - destruct (n0 ?= n) eqn:H1; b2p.
+  - bdestruct (n0 ?= n).
     + destruct t1; intuition.
       remember (Node n0 t1_1 t1_2) as t1. clear Heqt1.
       destruct (leftmost t2) eqn:H7.
@@ -300,7 +301,7 @@ Proof.
   generalize dependent n.
   induction t; intros; unfold_tree.
   - simpl. auto.
-  - destruct (n0 ?= n) eqn:H1; b2p; unfold_tree.
+  - bdestruct (n0 ?= n); unfold_tree.
     + destruct t1.
       * intuition. apply tree_gt_implies_not_member in H4; eauto.
       * { remember (Node n0 t1_1 t1_2) as t1. clear Heqt1.
@@ -312,10 +313,10 @@ Proof.
           - apply tree_lt_implies_not_member in H2; eauto.
         }
     + simpl.
-      rewrite nat_compare_lt in H1. rewrite H1.
+      bdestruct (n0 ?= n); try omega.
       apply IHt1. intuition.
     + simpl. assert (n0 > n). { omega. }
-      rewrite nat_compare_gt in H0. rewrite H0.
+      bdestruct (n0 ?= n); try omega.
       apply IHt2. intuition.
 Qed.
 
@@ -331,7 +332,7 @@ Proof.
   intros t.
   induction t; intros; unfold_tree.
   - simpl. auto.
-  - destruct (n0 ?= n) eqn:H1; b2p; unfold_tree.
+  - bdestruct (n0 ?= n); unfold_tree.
     + destruct t1.
       * intuition.
       * { destruct (leftmost t2) eqn:H1.

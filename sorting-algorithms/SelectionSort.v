@@ -1,8 +1,9 @@
 Require Import Arith List Permutation.
 Require Import SortSpec.
 
-Require Import Tactics.Bool2Prop.
+Require Import Tactics.Tactics.
 Require Import Tactics.CpdtTactics.
+Require Import Tactics.PermutationSolver.
 
 Module SelectSort <: Sorting.
 
@@ -61,17 +62,16 @@ Lemma select_spec :
 Proof.
   intro l; induction l; crush.
   - constructor; auto.
-  - destruct (x <? a) eqn:Heq; b2p; crush.
+  - bdestruct (x <? a); crush.
     destruct (select x l) eqn:Hs; apply IHl in Hs; inversion H; crush.
-    inversion H0; subst; repeat constructor; crush.
+    inversion H1; subst; repeat constructor; crush.
     destruct (select a l) eqn:Hs; apply IHl in Hs; inversion H; crush.
-    inversion H0; subst; repeat constructor; crush.
-  - destruct (x <? a) eqn:Heq; b2p; crush.
+    inversion H1; subst; repeat constructor; crush.
+  - bdestruct (x <? a); crush.
     destruct (select x l) eqn:Hs; apply IHl in Hs; inversion H; crush.
-    eapply perm_trans. apply perm_swap. eapply perm_trans.
-    apply perm_skip. apply H3. apply perm_swap.
+    permutation_solver.
     destruct (select a l) eqn:Hs; apply IHl in Hs; inversion H; crush.
-    apply perm_swap.
+    permutation_solver.
 Qed.
 
 Lemma select_spec' :

@@ -1,7 +1,7 @@
 Require Import Arith List Permutation Extraction.
 Require Import SortSpec.
 
-Require Import Tactics.Bool2Prop.
+Require Import Tactics.Tactics.
 Require Import Tactics.CpdtTactics.
 
 Module InsertSort <: Sorting.
@@ -36,10 +36,10 @@ Lemma insert_keeps_sorted :
 Proof.
   intros l.
   induction l; crush.
-  destruct (x <=? a) eqn:H1; b2p; crush.
+  bdestruct (x <=? a); crush.
   pose proof (IHl x).
   inversion H; destruct l; crush.
-  destruct (x <=? n) eqn:H3; b2p; crush.
+  bdestruct (x <=? n); crush.
 Qed.
 
 (** [insert] keeps a permutation still a permutation. *)
@@ -49,7 +49,7 @@ Proof.
   intros l l'.
   generalize dependent l.
   induction l'; crush.
-  destruct (x <=? a) eqn:H1; b2p; crush.
+  bdestruct (x <=? a); crush.
   pose proof (IHl' l' x (Permutation_refl l')).
   apply perm_trans with (l' := (a :: x :: l')); auto.
   apply perm_swap.

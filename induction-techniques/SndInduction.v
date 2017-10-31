@@ -1,14 +1,13 @@
 Require Import Omega.
 
-(** Second induction principle on natural number. The principle
-    states that, for any given proposition and natural number [n],
-    if this proposition holds for any [k] that is smaller than [n],
-    then the [n] case also holds, we can conclude this proposition
-    holds for any given natural number [n]. *)
+(** Second induction principle on natural number. The principle states that, for
+    any given proposition and natural number [n], if this proposition holds for
+    any [k] that is smaller than [n], then the [n] case also holds, we can
+    conclude this proposition holds for any given natural number [n]. *)
 
-(** To prove this principle, we first need to strengthen the hypothesis,
-    so we will not lose track of any previous proof during the induction
-    using the first induction principle. *)
+(** To prove this principle, we first need to strengthen the hypothesis, so we
+    will not lose track of any previous proof during the induction using the
+    first induction principle. *)
 Theorem snd_principle' :
   forall (P: nat -> Prop),
     (forall n, (forall k, k < n -> P k) -> P n) ->
@@ -74,10 +73,9 @@ Proof.
     ______________________________________(1/1)
     f n = S (S n) mod 2
 
-    we only get induction hypothesis on [S n] case, but we actually
-    want the [n] case here. One benefit of second induction principle
-    is we can use any smaller [k] than [n] to pose a proof rather than
-    [n-1]. *)
+    we only get induction hypothesis on [S n] case, but we actually want the [n]
+    case here. One benefit of second induction principle is we can use any
+    smaller [k] than [n] to pose a proof rather than [n-1]. *)
 
       Restart.
 

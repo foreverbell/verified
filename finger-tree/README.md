@@ -10,5 +10,5 @@ TODO: append, monoid.
 
 ## References
 
-[Finger trees: a simple general-purpose data structure](http://www.staff.city.ac.uk/~ross/papers/FingerTree.pdf)
-[Zhihu, Chinese](https://zhuanlan.zhihu.com/p/30589105)
+* [Finger trees: a simple general-purpose data structure](http://www.staff.city.ac.uk/~ross/papers/FingerTree.pdf)
+* [Zhihu, Chinese](https://zhuanlan.zhihu.com/p/30589105)

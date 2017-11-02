@@ -146,7 +146,7 @@ Fixpoint viewR {A : Type} (t : FingerTree A) : ViewR A.
   ); simpl in *; intuition.
 Defined.
 
-(** Abstract relatons w.r.t. simple list. *)
+(** Abstract relation w.r.t. simple list. *)
 Inductive AbsRelateNode : forall (A : Type), Node A -> list A -> Prop :=
 | abs_relate_node2 : forall (A : Type) (a b : A),
     AbsRelateNode (node2 a b) [a; b]

@@ -1,0 +1,5 @@
+-R . Fenwick
+-R ../tactics Tactics
+Array.v
+LSB.v
+Fenwick.v

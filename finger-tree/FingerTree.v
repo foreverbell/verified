@@ -274,9 +274,15 @@ Ltac break_match :=
       let Heq := fresh "Heq" in destruct X eqn:Heq
   end; subst.
 
+Hint Constructors AbsRelateNode AbsRelateTree.
 Hint Rewrite <- app_assoc : app.
 Hint Rewrite app_nil_r : app.
 Hint Rewrite concat_app : app.
+
+Hint Resolve Forall2_app.
+Hint Extern 5 (AbsRelateTree (deep _ _ _) _) =>
+  eapply abs_relate_tree_eq; [ econstructor |]; eauto; simpl;
+  autorewrite with app using (auto; simpl).
 
 Theorem cons_relate :
   forall (A : Type) (t : FingerTree A) (a : A) (l : list A),
@@ -284,21 +290,9 @@ Theorem cons_relate :
     AbsRelateTree (a <| t) (a :: l).
 Proof.
   induction t; intros.
-  - inv_abs H. constructor.
-  - inv_abs H.
-    eapply abs_relate_tree_eq; [ econstructor |]; constructor.
-  - simpl; destruct d; break_match.
-    + inv_abs H.
-      eapply abs_relate_tree_eq; [ econstructor |]; eauto.
-    + inv_abs H.
-      eapply abs_relate_tree_eq; [ econstructor |]; eauto.
-    + inv_abs H.
-      eapply abs_relate_tree_eq; [ econstructor |]; eauto.
-    + inv_abs H.
-      eapply abs_relate_tree_eq; [ econstructor |].
-      * apply IHt; eauto.
-      * repeat constructor. eauto.
-      * simpl. auto.
+  - inv_abs H; auto.
+  - inv_abs H; auto.
+  - simpl; destruct d; break_match; inv_abs H; auto.
 Qed.
 
 Theorem snoc_relate :
@@ -307,24 +301,9 @@ Theorem snoc_relate :
     AbsRelateTree (t |> a) (l ++ [a]).
 Proof.
   induction t; intros.
-  - inv_abs H. constructor.
-  - inv_abs H.
-    eapply abs_relate_tree_eq; [ econstructor |]; constructor.
-  - simpl; destruct d; break_match.
-    + inv_abs H.
-      eapply abs_relate_tree_eq; [ econstructor |]; eauto.
-      autorewrite with app using auto.
-    + inv_abs H.
-      eapply abs_relate_tree_eq; [ econstructor |]; eauto.
-      autorewrite with app using auto.
-    + inv_abs H.
-      eapply abs_relate_tree_eq; [ econstructor |]; eauto.
-      autorewrite with app using auto.
-    + inv_abs H.
-      eapply abs_relate_tree_eq; [ econstructor |].
-      * apply IHt; eauto.
-      * apply Forall2_app; eauto. repeat constructor.
-      * simpl. autorewrite with app using auto.
+  - inv_abs H; auto.
+  - inv_abs H; auto.
+  - simpl; destruct d; break_match; inv_abs H; auto.
 Qed.
 
 Theorem nodeToDigit_relate :
@@ -343,6 +322,9 @@ Proof.
   solve [ auto | inv_abs H3; inversion H6; subst; auto ].
 Qed.
 
+Hint Resolve digitToTree_relate_inv.
+Hint Resolve nodeToDigit_relate.
+
 Theorem viewL_relate :
   forall (A : Type) (t t' : FingerTree A) (a : A) (l : list A),
     viewL t = consL a t' ->
@@ -351,25 +333,11 @@ Theorem viewL_relate :
 Proof.
   induction t; intros.
   - simpl in H; discriminate.
-  - inv_abs H. inv_abs H0. constructor.
-  - inversion H; destruct d; break_match; inversion H2; subst; clear H2.
-    + destruct t; simpl in *.
-      * eapply abs_relate_tree_eq; [ econstructor |]; eauto.
-        constructor.
-        simpl. apply digitToTree_relate_inv in H0; subst; auto.
-      * discriminate.
-      * break_match; discriminate.
-    + inv_abs H0. pose proof (IHt f n x); intuition.
-      eapply abs_relate_tree_eq; [ econstructor |]; eauto.
-      constructor; eauto.
-      apply nodeToDigit_relate.
-      simpl; autorewrite with app using auto.
-    + inv_abs H0.
-      eapply abs_relate_tree_eq; [ econstructor |]; eauto.
-    + inv_abs H0.
-      eapply abs_relate_tree_eq; [ econstructor |]; eauto.
-    + inv_abs H0.
-      eapply abs_relate_tree_eq; [ econstructor |]; eauto.
+  - inv_abs H; inv_abs H0; auto.
+  - inversion H; destruct d; break_match; inversion H2; subst; clear H2;
+    try solve [inv_abs H0; auto].
+    destruct t; simpl in *; try solve [break_match; discriminate].
+    apply digitToTree_relate_inv in H0; subst; auto.
 Qed.
 
 Theorem viewR_relate :
@@ -380,28 +348,11 @@ Theorem viewR_relate :
 Proof.
   induction t; intros.
   - simpl in H; discriminate.
-  - inv_abs H. inv_abs H0. constructor.
-  - inversion H; destruct d0; break_match; inversion H2; subst; clear H2.
-    + destruct t; simpl in *.
-      * eapply abs_relate_tree_eq; [ econstructor |]; eauto.
-        constructor.
-        simpl. apply digitToTree_relate_inv in H0; subst; auto.
-      * discriminate.
-      * break_match; discriminate.
-    + inv_abs H0. pose proof (IHt f n x); intuition.
-      eapply abs_relate_tree_eq; [ econstructor |]; eauto.
-      apply Forall2_app; eauto.
-      constructor; eauto; apply nodeToDigit_relate.
-      autorewrite with app using (auto; simpl).
-    + inv_abs H0.
-      eapply abs_relate_tree_eq; [ econstructor |]; eauto.
-      autorewrite with app using auto.
-    + inv_abs H0.
-      eapply abs_relate_tree_eq; [ econstructor |]; eauto.
-      autorewrite with app using auto.
-    + inv_abs H0.
-      eapply abs_relate_tree_eq; [ econstructor |]; eauto.
-      autorewrite with app using auto.
+  - inv_abs H; inv_abs H0; auto.
+  - inversion H; destruct d0; break_match; inversion H2; subst; clear H2;
+    try solve [inv_abs H0; auto].
+    destruct t; simpl in *; try solve [break_match; discriminate].
+    apply digitToTree_relate_inv in H0; subst; auto.
 Qed.
 
 Lemma semiDigitConcatTree_relate :
@@ -437,6 +388,9 @@ Proof.
   destruct a; simpl; constructor.
 Qed.
 
+Hint Resolve semiDigitConcatTree_relate treeConcatSemiDigit_relate.
+Hint Resolve cons_relate snoc_relate.
+
 Lemma concatRec_relate :
   forall (A : Type) (t1 t2 : FingerTree A) (x : SemiDigit A) (l1 l2 : list A),
     AbsRelateTree t1 l1 ->
@@ -444,16 +398,12 @@ Lemma concatRec_relate :
     AbsRelateTree (concatRec t1 x t2) (l1 ++ proj1_sig x ++ l2).
 Proof.
   induction t1; intros; simpl.
-  - inv_abs H.
-    apply semiDigitConcatTree_relate; auto.
-  - inv_abs H.
-    apply cons_relate. apply semiDigitConcatTree_relate; auto.
+  - inv_abs H; auto.
+  - inv_abs H; auto.
   - destruct t2.
-    + inv_abs H0. autorewrite with app.
-      apply treeConcatSemiDigit_relate; auto.
+    + inv_abs H0; autorewrite with app using auto.
     + inv_abs H0.
-      eapply abs_relate_tree_eq.
-      apply snoc_relate; apply treeConcatSemiDigit_relate; eauto.
+      eapply abs_relate_tree_eq; eauto.
       autorewrite with app using auto.
     + inv_abs H; inv_abs H0.
       eapply abs_relate_tree_eq. econstructor.
@@ -461,9 +411,9 @@ Proof.
       apply Forall2_app; eauto.
       apply Forall2_app; eauto.
       apply nodeToList_Forall_relate.
-      destruct d0; destruct x; destruct d1.
-      do 5 (try (destruct x2));
+      destruct x; destruct d0; destruct d1;
       do 6 (try (destruct x));
+      do 5 (try (destruct x2));
       do 5 (try (destruct x3));
       simpl in a; simpl in a0; simpl in a1; try omega; simpl;
       autorewrite with app using auto.

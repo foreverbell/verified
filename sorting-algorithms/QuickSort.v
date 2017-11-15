@@ -149,8 +149,9 @@ Definition quicksort : list nat -> list nat.
     (fun (l : list nat)
       (quicksort : forall l' : list nat, lengthOrder l' l -> list nat) =>
         match ge_dec (length l) 1 with
-        | left proof => let t := pivot l proof
-                         in quicksort (fst (snd t)) _ ++ (fst t) :: nil ++ quicksort (snd (snd t)) _
+        | left proof =>
+            let t := pivot l proof in
+            quicksort (fst (snd t)) _ ++ (fst t) :: nil ++ quicksort (snd (snd t)) _
         | right _ => l
         end
 	  )
@@ -164,8 +165,9 @@ Defined.
 Theorem quicksort_eq : forall l,
   quicksort l =
     match ge_dec (length l) 1 with
-    | left proof => let t := pivot l proof
-                     in quicksort (fst (snd t)) ++ (fst t) :: nil ++ quicksort (snd (snd t))
+    | left proof =>
+        let t := pivot l proof in
+        quicksort (fst (snd t)) ++ (fst t) :: nil ++ quicksort (snd (snd t))
     | right _ => l
     end.
 Proof.

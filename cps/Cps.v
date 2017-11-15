@@ -107,10 +107,10 @@ Section BST.
     forall (t : tree) (b : list key),
       traversal_cps' t b = traversal t ++ b.
   Proof.
-  induction t; intros; simpl.
-  + auto.
-  + rewrite IHt1, IHt2. rewrite <- app_assoc.
-    f_equal.
+    induction t; intros; simpl.
+    + auto.
+    + rewrite IHt1, IHt2. rewrite <- app_assoc.
+      f_equal.
   Qed.
 
   Theorem traversal_cps_eq : traversal_cps = traversal.

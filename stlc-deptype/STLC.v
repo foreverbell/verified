@@ -1,8 +1,8 @@
 (** Inspired by https://github.com/tchajed/goedel-t/blob/master/SystemT.v. *)
 
 Require Import List Equality Relations.
+Require Import Tactics.Crush.
 Require Import Tactics.Tactics.
-Require Import Tactics.CpdtTactics.
 
 Import List.ListNotations.
 Open Scope list.

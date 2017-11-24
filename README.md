@@ -1,5 +1,5 @@
 # verified
 
-Gems of verified things.
+Gems of verified things for educational purpose.
 
-For educational purpose.
+Known to compile under Coq `8.6`.

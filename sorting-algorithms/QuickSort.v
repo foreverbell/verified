@@ -1,9 +1,10 @@
-Require Import Arith List FunctionalExtensionality Permutation Extraction.
+Require Import Arith List FunctionalExtensionality Permutation Omega.
+Require Import Extraction.
 Require Import SortSpec.
 
-Require Import Tactics.Tactics.
-Require Import Tactics.CpdtTactics.
+Require Import Tactics.Crush.
 Require Import Tactics.PermutationSolver.
+Require Import Tactics.Tactics.
 
 Module QuickSort <: Sorting.
 
@@ -75,16 +76,17 @@ Definition lengthOrder (l1 l2 : list nat) :=
 Lemma lengthOrder_wf' :
   forall len l, length l <= len -> Acc lengthOrder l.
 Proof.
-  Hint Constructors Acc.
-  unfold lengthOrder; induction len; crush.
-Defined.
+  unfold lengthOrder; induction len; intros; constructor; intros.
+  + destruct l; crush.
+  + apply IHlen; crush.
+Qed.
 
 (** [lengthOrder] is well-founded relation. *)
 Theorem lengthOrder_wf : well_founded lengthOrder.
 Proof.
   Hint Constructors Acc.
   unfold lengthOrder; intro; eapply lengthOrder_wf'; eauto.
-Defined.
+Qed.
 
 (** Divide the list [l] with respect to the order between [x] into two lists. *)
 Fixpoint divide (x : nat) (l : list nat) : (list nat) * (list nat) :=

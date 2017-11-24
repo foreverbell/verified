@@ -1,9 +1,9 @@
-Require Import Arith List Permutation.
+Require Import Arith List Permutation Omega.
 Require Import SortSpec.
 
-Require Import Tactics.Tactics.
-Require Import Tactics.CpdtTactics.
+Require Import Tactics.Crush.
 Require Import Tactics.PermutationSolver.
+Require Import Tactics.Tactics.
 
 Module SelectSort <: Sorting.
 
@@ -37,16 +37,17 @@ Definition lengthOrder (l1 l2 : list nat) :=
 Lemma lengthOrder_wf' :
   forall len l, length l <= len -> Acc lengthOrder l.
 Proof.
-  Hint Constructors Acc.
-  unfold lengthOrder; induction len; crush.
-Defined.
+  unfold lengthOrder; induction len; intros; constructor; intros.
+  + destruct l; crush.
+  + apply IHlen; crush.
+Qed.
 
 (** [lengthOrder] is well-founded relation. *)
 Theorem lengthOrder_wf : well_founded lengthOrder.
 Proof.
   Hint Constructors Acc.
   unfold lengthOrder; intro; eapply lengthOrder_wf'; eauto.
-Defined.
+Qed.
 
 Fixpoint select (i : nat) (l : list nat) : nat * list nat :=
   match l with
@@ -115,8 +116,8 @@ Theorem selsort_eq : forall l,
     | h :: t => fst (select h t) :: selsort (snd (select h t))
     end.
 Proof.
-  intros; destruct l; auto.
-  apply (Fix_eq lengthOrder_wf (fun _ => list nat)). intros.
+  intros; destruct l;
+  apply (Fix_eq lengthOrder_wf (fun _ => list nat)); auto; intros;
   destruct x; simpl; repeat f_equal; auto.
 Qed.
 
@@ -125,7 +126,8 @@ Definition sort := selsort.
 Example selsort_pi :
   sort [3; 1; 4; 1; 5; 9; 2; 6; 5; 3; 5] = [1; 1; 2; 3; 3; 4; 5; 5; 5; 6; 9].
 Proof.
-  simpl; reflexivity.
+  repeat (rewrite selsort_eq; simpl).
+  reflexivity.
 Qed.
 
 Theorem sort_algorithm : forall (l : list nat),

@@ -1,8 +1,8 @@
 Require Import Arith List Permutation Extraction.
 Require Import SortSpec.
 
+Require Import Tactics.Crush.
 Require Import Tactics.Tactics.
-Require Import Tactics.CpdtTactics.
 
 Module InsertSort <: Sorting.
 

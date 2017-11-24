@@ -1,7 +1,6 @@
 Require Import Arith Omega.
 
 Require Import Tactics.Tactics.
-Require Import Tactics.FrapTactics.
 
 (* This formalization of BST is slightly modified from 6.887's homework. *)
 

@@ -94,6 +94,12 @@ Proof.
     now rewrite IHn.
 Qed.
 
+Lemma JMeqCons :
+  forall A n m (a : A) (b : Vect n A) (c : Vect m A),
+    b ~= c -> Cons a b ~= Cons a c.
+Proof.
+  Admitted.
+
 Theorem takeDropWhileAppend :
   forall A n (p : A -> bool) (xs : Vect n A),
     append (takeWhile p xs).2 (dropWhile p xs).2 ~= xs.
@@ -102,10 +108,43 @@ Proof.
   - depelim xs; intuition.
   - funelim (takeWhile p xs); funelim (dropWhile p (Cons a v)); simpl in *.
     + simp append.
-      pose proof (IHn p v0).
+      specialize (IHn p v0).
       remember (append (takeWhile p v0).2 (dropWhile p v0).2) as ys; clear Heqys.
-      admit.
+      now apply JMeqCons.
     + rewrite Heq in Heq0; discriminate.
     + rewrite Heq in Heq0; discriminate.
     + simp append.
-Admitted.
+Qed.
+
+Section Reverse.
+  Equations Vect_plus_n_O_inject {A} {n} (xs : Vect n A) : Vect (n + 0) A :=
+    Vect_plus_n_O_inject xs := _.
+  Next Obligation.
+    rewrite <- plus_n_O; exact xs.
+  Defined.
+
+  Equations Vect_plus_S_inject {A} {n m} (xs : Vect (S n + m) A)
+      : Vect (n + S m) A :=
+    Vect_plus_S_inject xs := _.
+  Next Obligation.
+    assert (S n + m = n + S m). omega.
+    rewrite <- H; exact xs.
+  Defined.
+
+  Equations reverseHelper {A} {n} {m} (acc : Vect n A) (ys : Vect m A)
+      : Vect (n + m) A :=
+  reverseHelper acc ys by rec (signature_pack ys) Vect_subterm :=
+    reverseHelper acc Nil := Vect_plus_n_O_inject acc;
+    reverseHelper acc (Cons y ys) :=
+      Vect_plus_S_inject (reverseHelper (Cons y acc) ys).
+
+  Equations reverse {A} {n} (xs : Vect n A) : Vect n A :=
+    reverse xs := reverseHelper Nil xs.
+
+  Lemma reverseInvolutive :
+    forall A n (xs : Vect n A),
+      reverse (reverse xs) = xs.
+  Proof.
+    intros; simp reverse.
+  Admitted.
+End Reverse.

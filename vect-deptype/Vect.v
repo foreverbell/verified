@@ -50,6 +50,23 @@ Equations index {A} {n} (f : Fin n) (xs : Vect n A) : A :=
   index FZ (Cons x xs) := x;
   index (FS f) (Cons x xs) := index f xs.
 
+Equations insertAt {A} {n} (f : Fin (S n)) (y : A) (xs : Vect n A) : Vect (S n) A :=
+  insertAt FZ y xs := Cons y xs;
+  insertAt (FS f) y (Cons x xs) := Cons x (insertAt f y xs).
+
+Equations replaceAt {A} {n} (f : Fin n) (y : A) (xs : Vect n A) : Vect n A :=
+  replaceAt FZ y (Cons x xs) := Cons y xs;
+  replaceAt (FS f) y (Cons x xs) := Cons x (replaceAt f y xs).
+
+Theorem replaceIndex :
+  forall A n (y : A) (xs : Vect n A) (f : Fin n),
+    index f (replaceAt f y xs) = y.
+Proof.
+  induction xs; intros.
+  - depelim f.
+  - depelim f; simp replaceAt index.
+Qed.
+
 Equations take {A} n {m} (xs : Vect (n + m) A) : Vect n A :=
   take 0 xs := Nil;
   take (S n) (Cons x xs) := Cons x (take n xs).
@@ -94,11 +111,19 @@ Proof.
     now rewrite IHn.
 Qed.
 
+Lemma Vectn :
+  forall A n m, Vect n A = Vect m A -> n = m.
+Proof.
+Admitted.
+
 Lemma JMeqCons :
   forall A n m (a : A) (b : Vect n A) (c : Vect m A),
     b ~= c -> Cons a b ~= Cons a c.
 Proof.
-  Admitted.
+  intros. depelim H.
+  apply Vectn in H; subst.
+  now rewrite H0.
+Qed.
 
 Theorem takeDropWhileAppend :
   forall A n (p : A -> bool) (xs : Vect n A),

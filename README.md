@@ -4,7 +4,7 @@ Gems of verified things for educational purpose.
 
 All known to compile under Coq `8.7`.
 
-# Items
+## Items
 
 * binary-heap: Binary heap.
 * fast-power: Fast power method generalized to monoids.

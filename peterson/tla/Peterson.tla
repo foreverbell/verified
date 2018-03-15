@@ -1,19 +1,24 @@
--------------------------------- MODULE Peterson --------------------------------
+------------------------------ MODULE Peterson --------------------------------
 
 EXTENDS TLAPS
 
-Thread == {0, 1}
+Thread == {1, 2}
 PC == {"P1", "P2", "P3", "P4", "P5", "CS"}
 
 VARIABLES flag, turn, pc
 vars == <<flag, turn, pc>>
 
-Other(i) == IF i = 0 THEN 1 ELSE 0
+-------------------------------------------------------------------------------
 
 Init ==
   /\ flag = [i \in Thread |-> FALSE]
-  /\ turn = 0
+  /\ turn = 1
   /\ pc = [i \in Thread |-> "P1"]
+
+-------------------------------------------------------------------------------
+
+Other(i) ==
+  IF i = 1 THEN 2 ELSE 1
 
 StepP1(i) ==
   /\ pc[i] = "P1"
@@ -57,10 +62,22 @@ ThreadStep(i) ==
   \/ StepP3(i)
   \/ StepCS(i)
   \/ StepP4(i)
- 
-Next == \E i \in Thread : ThreadStep(i)
 
-Spec == Init /\ [][Next]_vars
+Next ==
+  \E i \in Thread : ThreadStep(i)
+
+-------------------------------------------------------------------------------
+\* Thread 1 or thread 2 can take a step at every instant.
+
+Liveness ==
+  WF_vars(ThreadStep(1) \/ ThreadStep(2))
+
+-------------------------------------------------------------------------------
+
+Spec ==
+  /\ Init
+  /\ [][Next]_vars
+  /\ Liveness
 
 TypeInvariant ==
   /\ pc \in [Thread -> PC]
@@ -68,7 +85,7 @@ TypeInvariant ==
   /\ flag \in [Thread -> BOOLEAN]
 
 MutualExclusion ==
-  ~ (pc[0] = "CS" /\ pc[1] = "CS")
+  ~ (pc[1] = "CS" /\ pc[2] = "CS")
 
 Invariant ==
   /\ TypeInvariant
@@ -80,26 +97,43 @@ Invariant ==
             )
      )
 
+\* Two threads can not both enter into critical sections.
+SafetyProperty ==
+  []MutualExclusion
+
+\* If the program terminates, two threads must have left critical sections.
+LivenessProperty ==
+  <>[](pc[1] = "P5" /\ pc[2] = "P5")
+
+-------------------------------------------------------------------------------
+\* TLAPS proof.
+
 LEMMA InvariantImpliesMutualExclusion ==
   Invariant => MutualExclusion
+PROOF
 <1> QED BY DEF Invariant, TypeInvariant, MutualExclusion, PC, Thread, Other
 
 LEMMA InitStateSatisfiesInvariant ==
   Init => Invariant
+PROOF
 <1> QED BY DEF Init, Invariant, TypeInvariant, PC, Thread
 
 LEMMA StateStepKeepsInvariant ==
   Invariant /\ Next => Invariant'
+PROOF
 <1> USE DEF Invariant, TypeInvariant, PC, Thread, Other
 <1> USE DEF StepP1, StepP2, StepFailP3, StepP3, StepCS, StepP4
 <1> SUFFICES ASSUME Invariant, Next PROVE Invariant' OBVIOUS
 <1> PICK i \in Thread : ThreadStep(i) BY DEF Next
 <1> QED BY DEF ThreadStep
 
-THEOREM Safety ==
-  Spec => []MutualExclusion
-<1> SUFFICES Spec => []Invariant BY InvariantImpliesMutualExclusion, PTL
+THEOREM
+  Spec => SafetyProperty
+PROOF
+<1> SUFFICES Spec => []Invariant
+    BY InvariantImpliesMutualExclusion, PTL
+    DEF SafetyProperty
 <1> SUFFICES ASSUME Init /\ [][Next]_vars PROVE []Invariant BY DEF Spec
 <1> QED BY InitStateSatisfiesInvariant, StateStepKeepsInvariant, PTL
 
-=================================================================================
+===============================================================================

@@ -1,0 +1,8 @@
+git_repository(
+  name = "rules_tla",
+  remote = "https://github.com/foreverbell/rules_tla.git",
+  commit = "b8b1f7fa3d77894e5b16336b41faea382d05208f",
+)
+
+load("@rules_tla//tla:tla.bzl", "tla_repositories")
+tla_repositories()

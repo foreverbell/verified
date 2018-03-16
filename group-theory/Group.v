@@ -173,3 +173,5 @@ Proof.
 Qed.
 
 End Group.
+
+Check id_inv.

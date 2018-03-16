@@ -67,7 +67,9 @@ Next ==
   \E i \in Thread : ThreadStep(i)
 
 -------------------------------------------------------------------------------
-\* Thread 1 or thread 2 can take a step at every instant.
+\* To ensure this program specification can always make progress, either thread
+\* 1 or thread 2 must take an action at every step before getting terminated.
+\* This removes the behaviors that stutter in middle.
 
 Liveness ==
   WF_vars(ThreadStep(1) \/ ThreadStep(2))

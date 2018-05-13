@@ -69,7 +69,7 @@ Next ==
 \* 1 or thread 2 must take an action at every step before getting terminated.
 \* This removes the behaviors that stutter in middle.
 
-Liveness ==
+Fairness ==
   WF_vars(ThreadStep(1) \/ ThreadStep(2))
 
 -------------------------------------------------------------------------------
@@ -77,7 +77,7 @@ Liveness ==
 Spec ==
   /\ Init
   /\ [][Next]_vars
-  /\ Liveness
+  /\ Fairness
 
 TypeInvariant ==
   /\ pc \in [Thread -> PC]

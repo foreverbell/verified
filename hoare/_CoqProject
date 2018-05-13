@@ -1,0 +1,8 @@
+-R . Hoare
+-R ../tactics Tactics
+Example.v
+HOAS/Example.v
+HOAS/Hoare.v
+Hoare.v
+Map.v
+SepLogic.v
